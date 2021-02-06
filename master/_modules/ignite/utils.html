@@ -286,10 +286,12 @@
               
   <h1>Source code for ignite.utils</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">collections.abc</span> <span class="k">as</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TextIO</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TextIO</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 
@@ -458,6 +460,37 @@
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="k">pass</span></div>
+
+
+<span class="k">def</span> <span class="nf">deprecated</span><span class="p">(</span>
+    <span class="n">deprecated_in</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">removed_in</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">reasons</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span> <span class="n">raise_exception</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+
+    <span class="n">F</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">F</span><span class="p">:</span>
+        <span class="n">func_doc</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="k">if</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">deprecation_warning</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;This function has been deprecated since version </span><span class="si">{</span><span class="n">deprecated_in</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot; and will be removed in version </span><span class="si">{</span><span class="n">removed_in</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">removed_in</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s2">&quot;.</span><span class="se">\n</span><span class="s2"> Please refer to the documentation for more details.&quot;</span>
+        <span class="p">)</span>
+
+        <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">raise_exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">DeprecationWarning</span><span class="p">(</span><span class="n">deprecation_warning</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">deprecation_warning</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">appended_doc</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;.. deprecated:: </span><span class="si">{</span><span class="n">deprecated_in</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n\t</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reasons</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">reason</span> <span class="ow">in</span> <span class="n">reasons</span><span class="p">:</span>
+            <span class="n">appended_doc</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">- &quot;</span> <span class="o">+</span> <span class="n">reason</span>
+        <span class="n">wrapper</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;**Deprecated function**.</span><span class="se">\n\n</span><span class="s2">    </span><span class="si">{</span><span class="n">func_doc</span><span class="si">}{</span><span class="n">appended_doc</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">wrapper</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">decorator</span>
 </pre></div>
 
              </article>

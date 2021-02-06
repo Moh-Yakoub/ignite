@@ -317,6 +317,7 @@
 <span class="kn">from</span> <span class="nn">ignite.handlers</span> <span class="kn">import</span> <span class="n">Checkpoint</span><span class="p">,</span> <span class="n">DiskSaver</span><span class="p">,</span> <span class="n">EarlyStopping</span><span class="p">,</span> <span class="n">TerminateOnNan</span>
 <span class="kn">from</span> <span class="nn">ignite.handlers.checkpoint</span> <span class="kn">import</span> <span class="n">BaseSaveHandler</span>
 <span class="kn">from</span> <span class="nn">ignite.metrics</span> <span class="kn">import</span> <span class="n">RunningAverage</span>
+<span class="kn">from</span> <span class="nn">ignite.utils</span> <span class="kn">import</span> <span class="n">deprecated</span>
 
 
 <div class="viewcode-block" id="setup_common_training_handlers"><a class="viewcode-back" href="../../../../contrib/engines.html#ignite.contrib.engines.common.setup_common_training_handlers">[docs]</a><span class="k">def</span> <span class="nf">setup_common_training_handlers</span><span class="p">(</span>
@@ -561,11 +562,21 @@
     <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
 
 
-<span class="k">def</span> <span class="nf">setup_any_logging</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">logger_module</span><span class="p">,</span> <span class="n">trainer</span><span class="p">,</span> <span class="n">optimizers</span><span class="p">,</span> <span class="n">evaluators</span><span class="p">,</span> <span class="n">log_every_iters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
-    <span class="k">raise</span> <span class="ne">DeprecationWarning</span><span class="p">(</span>
-        <span class="s2">&quot;ignite.contrib.engines.common.setup_any_logging is deprecated since 0.4.0. and will be remove in 0.6.0. &quot;</span>
-        <span class="s2">&quot;Please use instead: setup_tb_logging, setup_visdom_logging or setup_mlflow_logging etc.&quot;</span>
-    <span class="p">)</span>
+<div class="viewcode-block" id="setup_any_logging"><a class="viewcode-back" href="../../../../contrib/engines.html#ignite.contrib.engines.common.setup_any_logging">[docs]</a><span class="nd">@deprecated</span><span class="p">(</span>
+    <span class="s2">&quot;0.4.0&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;0.6.0&quot;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">&quot;Please use instead: setup_tb_logging, setup_visdom_logging or setup_mlflow_logging etc.&quot;</span><span class="p">,),</span>
+    <span class="n">raise_exception</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">setup_any_logging</span><span class="p">(</span>
+    <span class="n">logger</span><span class="p">:</span> <span class="n">BaseLogger</span><span class="p">,</span>
+    <span class="n">logger_module</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">trainer</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="n">optimizers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Optimizer</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optimizer</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Optimizer</span><span class="p">]]],</span>
+    <span class="n">evaluators</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Engine</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Engine</span><span class="p">]]],</span>
+    <span class="n">log_every_iters</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">pass</span></div>
 
 
 <span class="k">def</span> <span class="nf">_setup_logging</span><span class="p">(</span>
