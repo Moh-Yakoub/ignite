@@ -132,7 +132,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -196,7 +196,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -210,7 +210,8 @@
             <dd><a href="../../../../v0.3.0/index.html">v0.3.0</a></dd>
             <dd><a href="../../../../v0.4.0.post1/index.html">v0.4.0.post1</a></dd>
             <dd><a href="../../../../v0.4.1/index.html">v0.4.1</a></dd>
-            <dd><a href="../../../../v0.4.2/_modules/ignite/contrib/handlers/wandb_logger.html">v0.4.2</a></dd>
+            <dd><a href="../../../../v0.4.2/index.html">v0.4.2</a></dd>
+            <dd><a href="../../../../v0.4.3/_modules/ignite/contrib/handlers/wandb_logger.html">v0.4.3</a></dd>
             <dd><a href="../../../../v0.4rc.0.post1/index.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -285,197 +286,15 @@
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
   <h1>Source code for ignite.contrib.handlers.wandb_logger</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">ignite.contrib.handlers.base_logger</span> <span class="kn">import</span> <span class="n">BaseLogger</span><span class="p">,</span> <span class="n">BaseOptimizerParamsHandler</span><span class="p">,</span> <span class="n">BaseOutputHandler</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">torch.optim</span> <span class="kn">import</span> <span class="n">Optimizer</span>
+
+<span class="kn">from</span> <span class="nn">ignite.contrib.handlers.base_logger</span> <span class="kn">import</span> <span class="n">BaseLogger</span><span class="p">,</span> <span class="n">BaseOptimizerParamsHandler</span><span class="p">,</span> <span class="n">BaseOutputHandler</span>
+<span class="kn">from</span> <span class="nn">ignite.engine</span> <span class="kn">import</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">Events</span>
 <span class="kn">from</span> <span class="nn">ignite.handlers</span> <span class="kn">import</span> <span class="n">global_step_from_engine</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;WandBLogger&quot;</span><span class="p">,</span> <span class="s2">&quot;OutputHandler&quot;</span><span class="p">,</span> <span class="s2">&quot;OptimizerParamsHandler&quot;</span><span class="p">,</span> <span class="s2">&quot;global_step_from_engine&quot;</span><span class="p">]</span>
-
-
-<div class="viewcode-block" id="OutputHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.wandb_logger.OutputHandler">[docs]</a><span class="k">class</span> <span class="nc">OutputHandler</span><span class="p">(</span><span class="n">BaseOutputHandler</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Helper handler to log engine&#39;s output and/or metrics</span>
-
-<span class="sd">    Examples:</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from ignite.contrib.handlers.wandb_logger import *</span>
-
-<span class="sd">            # Create a logger. All parameters are optional. See documentation</span>
-<span class="sd">            # on wandb.init for details.</span>
-
-<span class="sd">            wandb_logger = WandBLogger(</span>
-<span class="sd">                entity=&quot;shared&quot;,</span>
-<span class="sd">                project=&quot;pytorch-ignite-integration&quot;,</span>
-<span class="sd">                name=&quot;cnn-mnist&quot;,</span>
-<span class="sd">                config={&quot;max_epochs&quot;: 10},</span>
-<span class="sd">                tags=[&quot;pytorch-ignite&quot;, &quot;minst&quot;]</span>
-<span class="sd">            )</span>
-
-<span class="sd">            # Attach the logger to the evaluator on the validation dataset and log NLL, Accuracy metrics after</span>
-<span class="sd">            # each epoch. We setup `global_step_transform=lambda *_: trainer.state.iteration,` to take iteration value</span>
-<span class="sd">            # of the `trainer`:</span>
-<span class="sd">            wandb_logger.attach(</span>
-<span class="sd">                evaluator,</span>
-<span class="sd">                log_handler=OutputHandler(</span>
-<span class="sd">                    tag=&quot;validation&quot;,</span>
-<span class="sd">                    metric_names=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
-<span class="sd">                    global_step_transform=lambda *_: trainer.state.iteration,</span>
-<span class="sd">                ),</span>
-<span class="sd">                event_name=Events.EPOCH_COMPLETED</span>
-<span class="sd">            )</span>
-<span class="sd">            # or equivalently</span>
-<span class="sd">            wandb_logger.attach_output_handler(</span>
-<span class="sd">                evaluator,</span>
-<span class="sd">                event_name=Events.EPOCH_COMPLETED,</span>
-<span class="sd">                tag=&quot;validation&quot;,</span>
-<span class="sd">                metric_names=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
-<span class="sd">                global_step_transform=lambda *_: trainer.state.iteration,</span>
-<span class="sd">            )</span>
-
-<span class="sd">        Another example, where model is evaluated every 500 iterations:</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from ignite.contrib.handlers.wandb_logger import *</span>
-
-<span class="sd">            @trainer.on(Events.ITERATION_COMPLETED(every=500))</span>
-<span class="sd">            def evaluate(engine):</span>
-<span class="sd">                evaluator.run(validation_set, max_epochs=1)</span>
-
-<span class="sd">            # Create a logger. All parameters are optional. See documentation</span>
-<span class="sd">            # on wandb.init for details.</span>
-
-<span class="sd">            wandb_logger = WandBLogger(</span>
-<span class="sd">                entity=&quot;shared&quot;,</span>
-<span class="sd">                project=&quot;pytorch-ignite-integration&quot;,</span>
-<span class="sd">                name=&quot;cnn-mnist&quot;,</span>
-<span class="sd">                config={&quot;max_epochs&quot;: 10},</span>
-<span class="sd">                tags=[&quot;pytorch-ignite&quot;, &quot;minst&quot;]</span>
-<span class="sd">            )</span>
-
-<span class="sd">            def global_step_transform(*args, **kwargs):</span>
-<span class="sd">                return trainer.state.iteration</span>
-
-<span class="sd">            # Attach the logger to the evaluator on the validation dataset and log NLL, Accuracy metrics after</span>
-<span class="sd">            # every 500 iterations. Since evaluator engine does not have access to the training iteration, we</span>
-<span class="sd">            # provide a global_step_transform to return the trainer.state.iteration for the global_step, each time</span>
-<span class="sd">            # evaluator metrics are plotted on Weights &amp; Biases.</span>
-
-<span class="sd">            wandb_logger.attach_output_handler(</span>
-<span class="sd">                evaluator,</span>
-<span class="sd">                event_name=Events.EPOCH_COMPLETED,</span>
-<span class="sd">                tag=&quot;validation&quot;,</span>
-<span class="sd">                metrics=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
-<span class="sd">                global_step_transform=global_step_transform</span>
-<span class="sd">            )</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        tag (str): common title for all produced plots. For example, &quot;training&quot;</span>
-<span class="sd">        metric_names (list of str, optional): list of metric names to plot or a string &quot;all&quot; to plot all available</span>
-<span class="sd">            metrics.</span>
-<span class="sd">        output_transform (callable, optional): output transform function to prepare `engine.state.output` as a number.</span>
-<span class="sd">            For example, `output_transform = lambda output: output`</span>
-<span class="sd">            This function can also return a dictionary, e.g `{&quot;loss&quot;: loss1, &quot;another_loss&quot;: loss2}` to label the plot</span>
-<span class="sd">            with corresponding keys.</span>
-<span class="sd">        global_step_transform (callable, optional): global step transform function to output a desired global step.</span>
-<span class="sd">            Input of the function is `(engine, event_name)`. Output of function should be an integer.</span>
-<span class="sd">            Default is None, global_step based on attached engine. If provided,</span>
-<span class="sd">            uses function output as global_step. To setup global step from another engine, please use</span>
-<span class="sd">            :meth:`~ignite.contrib.handlers.wandb_logger.global_step_from_engine`.</span>
-<span class="sd">        sync (bool, optional): If set to False, process calls to log in a seperate thread. Default (None) uses whatever</span>
-<span class="sd">            the default value of wandb.log.</span>
-
-<span class="sd">    Note:</span>
-
-<span class="sd">        Example of `global_step_transform`:</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            def global_step_transform(engine, event_name):</span>
-<span class="sd">                return engine.state.get_event_attrib_value(event_name)</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">metric_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">global_step_transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">metric_names</span><span class="p">,</span> <span class="n">output_transform</span><span class="p">,</span> <span class="n">global_step_transform</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sync</span> <span class="o">=</span> <span class="n">sync</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">):</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">WandBLogger</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler &#39;</span><span class="si">{}</span><span class="s2">&#39; works only with WandBLogger.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
-
-        <span class="n">global_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_step_transform</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">event_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">global_step</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s2">&quot;global_step must be int, got </span><span class="si">{}</span><span class="s2">.&quot;</span>
-                <span class="s2">&quot; Please check the output of global_step_transform.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">global_step</span><span class="p">))</span>
-            <span class="p">)</span>
-
-        <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_output_metrics</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;</span><span class="si">{tag}</span><span class="s2">/</span><span class="si">{name}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">):</span> <span class="n">value</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-
-        <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">global_step</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sync</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="OptimizerParamsHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.wandb_logger.OptimizerParamsHandler">[docs]</a><span class="k">class</span> <span class="nc">OptimizerParamsHandler</span><span class="p">(</span><span class="n">BaseOptimizerParamsHandler</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Helper handler to log optimizer parameters</span>
-
-<span class="sd">    Examples:</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from ignite.contrib.handlers.wandb_logger import *</span>
-
-<span class="sd">            # Create a logger. All parameters are optional. See documentation</span>
-<span class="sd">            # on wandb.init for details.</span>
-
-<span class="sd">            wandb_logger = WandBLogger(</span>
-<span class="sd">                entity=&quot;shared&quot;,</span>
-<span class="sd">                project=&quot;pytorch-ignite-integration&quot;,</span>
-<span class="sd">                name=&quot;cnn-mnist&quot;,</span>
-<span class="sd">                config={&quot;max_epochs&quot;: 10},</span>
-<span class="sd">                tags=[&quot;pytorch-ignite&quot;, &quot;minst&quot;]</span>
-<span class="sd">            )</span>
-
-<span class="sd">            # Attach the logger to the trainer to log optimizer&#39;s parameters, e.g. learning rate at each iteration</span>
-<span class="sd">            wandb_logger.attach(</span>
-<span class="sd">                trainer,</span>
-<span class="sd">                log_handler=OptimizerParamsHandler(optimizer),</span>
-<span class="sd">                event_name=Events.ITERATION_STARTED</span>
-<span class="sd">            )</span>
-<span class="sd">            # or equivalently</span>
-<span class="sd">            wandb_logger.attach_opt_params_handler(</span>
-<span class="sd">                trainer,</span>
-<span class="sd">                event_name=Events.ITERATION_STARTED,</span>
-<span class="sd">                optimizer=optimizer</span>
-<span class="sd">            )</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        optimizer (torch.optim.Optimizer or object): torch optimizer or any object with attribute ``param_groups``</span>
-<span class="sd">            as a sequence.</span>
-<span class="sd">        param_name (str): parameter name</span>
-<span class="sd">        tag (str, optional): common title for all produced plots. For example, &quot;generator&quot;</span>
-<span class="sd">        sync (bool, optional): If set to False, process calls to log in a seperate thread. Default (None) uses whatever</span>
-<span class="sd">            the default value of wandb.log.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">param_name</span><span class="o">=</span><span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">OptimizerParamsHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sync</span> <span class="o">=</span> <span class="n">sync</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">WandBLogger</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler OptimizerParamsHandler works only with WandBLogger&quot;</span><span class="p">)</span>
-
-        <span class="n">global_step</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">get_event_attrib_value</span><span class="p">(</span><span class="n">event_name</span><span class="p">)</span>
-        <span class="n">tag_prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">/group_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag_prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span> <span class="nb">float</span><span class="p">(</span><span class="n">param_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">])</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param_group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">param_groups</span><span class="p">)</span>
-        <span class="p">}</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">global_step</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sync</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="WandBLogger"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.wandb_logger.WandBLogger">[docs]</a><span class="k">class</span> <span class="nc">WandBLogger</span><span class="p">(</span><span class="n">BaseLogger</span><span class="p">):</span>
@@ -585,7 +404,7 @@
 <span class="sd">            evaluator.add_event_handler(Events.COMPLETED, model_checkpoint, {&#39;model&#39;: model})</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">wandb</span>
 
@@ -598,14 +417,210 @@
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;init&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
             <span class="n">wandb</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wandb</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wandb</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
 
-    <span class="k">def</span> <span class="nf">_create_output_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_create_output_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OutputHandler&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">OutputHandler</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_create_opt_params_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_create_opt_params_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OptimizerParamsHandler&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">OptimizerParamsHandler</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OutputHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.wandb_logger.OutputHandler">[docs]</a><span class="k">class</span> <span class="nc">OutputHandler</span><span class="p">(</span><span class="n">BaseOutputHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper handler to log engine&#39;s output and/or metrics</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.contrib.handlers.wandb_logger import *</span>
+
+<span class="sd">            # Create a logger. All parameters are optional. See documentation</span>
+<span class="sd">            # on wandb.init for details.</span>
+
+<span class="sd">            wandb_logger = WandBLogger(</span>
+<span class="sd">                entity=&quot;shared&quot;,</span>
+<span class="sd">                project=&quot;pytorch-ignite-integration&quot;,</span>
+<span class="sd">                name=&quot;cnn-mnist&quot;,</span>
+<span class="sd">                config={&quot;max_epochs&quot;: 10},</span>
+<span class="sd">                tags=[&quot;pytorch-ignite&quot;, &quot;minst&quot;]</span>
+<span class="sd">            )</span>
+
+<span class="sd">            # Attach the logger to the evaluator on the validation dataset and log NLL, Accuracy metrics after</span>
+<span class="sd">            # each epoch. We setup `global_step_transform=lambda *_: trainer.state.iteration,` to take iteration value</span>
+<span class="sd">            # of the `trainer`:</span>
+<span class="sd">            wandb_logger.attach(</span>
+<span class="sd">                evaluator,</span>
+<span class="sd">                log_handler=OutputHandler(</span>
+<span class="sd">                    tag=&quot;validation&quot;,</span>
+<span class="sd">                    metric_names=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
+<span class="sd">                    global_step_transform=lambda *_: trainer.state.iteration,</span>
+<span class="sd">                ),</span>
+<span class="sd">                event_name=Events.EPOCH_COMPLETED</span>
+<span class="sd">            )</span>
+<span class="sd">            # or equivalently</span>
+<span class="sd">            wandb_logger.attach_output_handler(</span>
+<span class="sd">                evaluator,</span>
+<span class="sd">                event_name=Events.EPOCH_COMPLETED,</span>
+<span class="sd">                tag=&quot;validation&quot;,</span>
+<span class="sd">                metric_names=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
+<span class="sd">                global_step_transform=lambda *_: trainer.state.iteration,</span>
+<span class="sd">            )</span>
+
+<span class="sd">        Another example, where model is evaluated every 500 iterations:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.contrib.handlers.wandb_logger import *</span>
+
+<span class="sd">            @trainer.on(Events.ITERATION_COMPLETED(every=500))</span>
+<span class="sd">            def evaluate(engine):</span>
+<span class="sd">                evaluator.run(validation_set, max_epochs=1)</span>
+
+<span class="sd">            # Create a logger. All parameters are optional. See documentation</span>
+<span class="sd">            # on wandb.init for details.</span>
+
+<span class="sd">            wandb_logger = WandBLogger(</span>
+<span class="sd">                entity=&quot;shared&quot;,</span>
+<span class="sd">                project=&quot;pytorch-ignite-integration&quot;,</span>
+<span class="sd">                name=&quot;cnn-mnist&quot;,</span>
+<span class="sd">                config={&quot;max_epochs&quot;: 10},</span>
+<span class="sd">                tags=[&quot;pytorch-ignite&quot;, &quot;minst&quot;]</span>
+<span class="sd">            )</span>
+
+<span class="sd">            def global_step_transform(*args, **kwargs):</span>
+<span class="sd">                return trainer.state.iteration</span>
+
+<span class="sd">            # Attach the logger to the evaluator on the validation dataset and log NLL, Accuracy metrics after</span>
+<span class="sd">            # every 500 iterations. Since evaluator engine does not have access to the training iteration, we</span>
+<span class="sd">            # provide a global_step_transform to return the trainer.state.iteration for the global_step, each time</span>
+<span class="sd">            # evaluator metrics are plotted on Weights &amp; Biases.</span>
+
+<span class="sd">            wandb_logger.attach_output_handler(</span>
+<span class="sd">                evaluator,</span>
+<span class="sd">                event_name=Events.EPOCH_COMPLETED,</span>
+<span class="sd">                tag=&quot;validation&quot;,</span>
+<span class="sd">                metrics=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
+<span class="sd">                global_step_transform=global_step_transform</span>
+<span class="sd">            )</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tag (str): common title for all produced plots. For example, &quot;training&quot;</span>
+<span class="sd">        metric_names (list of str, optional): list of metric names to plot or a string &quot;all&quot; to plot all available</span>
+<span class="sd">            metrics.</span>
+<span class="sd">        output_transform (callable, optional): output transform function to prepare `engine.state.output` as a number.</span>
+<span class="sd">            For example, `output_transform = lambda output: output`</span>
+<span class="sd">            This function can also return a dictionary, e.g `{&quot;loss&quot;: loss1, &quot;another_loss&quot;: loss2}` to label the plot</span>
+<span class="sd">            with corresponding keys.</span>
+<span class="sd">        global_step_transform (callable, optional): global step transform function to output a desired global step.</span>
+<span class="sd">            Input of the function is `(engine, event_name)`. Output of function should be an integer.</span>
+<span class="sd">            Default is None, global_step based on attached engine. If provided,</span>
+<span class="sd">            uses function output as global_step. To setup global step from another engine, please use</span>
+<span class="sd">            :meth:`~ignite.contrib.handlers.wandb_logger.global_step_from_engine`.</span>
+<span class="sd">        sync (bool, optional): If set to False, process calls to log in a seperate thread. Default (None) uses whatever</span>
+<span class="sd">            the default value of wandb.log.</span>
+
+<span class="sd">    Note:</span>
+
+<span class="sd">        Example of `global_step_transform`:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            def global_step_transform(engine, event_name):</span>
+<span class="sd">                return engine.state.get_event_attrib_value(event_name)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">metric_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">output_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">global_step_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">sync</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">metric_names</span><span class="p">,</span> <span class="n">output_transform</span><span class="p">,</span> <span class="n">global_step_transform</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sync</span> <span class="o">=</span> <span class="n">sync</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">WandBLogger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Events</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">WandBLogger</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Handler &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&#39; works only with WandBLogger.&quot;</span><span class="p">)</span>
+
+        <span class="n">global_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_step_transform</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">event_name</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">global_step</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;global_step must be int, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">global_step</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="s2">&quot; Please check the output of global_step_transform.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_output_metrics</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">global_step</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sync</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OptimizerParamsHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.wandb_logger.OptimizerParamsHandler">[docs]</a><span class="k">class</span> <span class="nc">OptimizerParamsHandler</span><span class="p">(</span><span class="n">BaseOptimizerParamsHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper handler to log optimizer parameters</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.contrib.handlers.wandb_logger import *</span>
+
+<span class="sd">            # Create a logger. All parameters are optional. See documentation</span>
+<span class="sd">            # on wandb.init for details.</span>
+
+<span class="sd">            wandb_logger = WandBLogger(</span>
+<span class="sd">                entity=&quot;shared&quot;,</span>
+<span class="sd">                project=&quot;pytorch-ignite-integration&quot;,</span>
+<span class="sd">                name=&quot;cnn-mnist&quot;,</span>
+<span class="sd">                config={&quot;max_epochs&quot;: 10},</span>
+<span class="sd">                tags=[&quot;pytorch-ignite&quot;, &quot;minst&quot;]</span>
+<span class="sd">            )</span>
+
+<span class="sd">            # Attach the logger to the trainer to log optimizer&#39;s parameters, e.g. learning rate at each iteration</span>
+<span class="sd">            wandb_logger.attach(</span>
+<span class="sd">                trainer,</span>
+<span class="sd">                log_handler=OptimizerParamsHandler(optimizer),</span>
+<span class="sd">                event_name=Events.ITERATION_STARTED</span>
+<span class="sd">            )</span>
+<span class="sd">            # or equivalently</span>
+<span class="sd">            wandb_logger.attach_opt_params_handler(</span>
+<span class="sd">                trainer,</span>
+<span class="sd">                event_name=Events.ITERATION_STARTED,</span>
+<span class="sd">                optimizer=optimizer</span>
+<span class="sd">            )</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        optimizer (torch.optim.Optimizer or object): torch optimizer or any object with attribute ``param_groups``</span>
+<span class="sd">            as a sequence.</span>
+<span class="sd">        param_name (str): parameter name</span>
+<span class="sd">        tag (str, optional): common title for all produced plots. For example, &quot;generator&quot;</span>
+<span class="sd">        sync (bool, optional): If set to False, process calls to log in a seperate thread. Default (None) uses whatever</span>
+<span class="sd">            the default value of wandb.log.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">:</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">param_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sync</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OptimizerParamsHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sync</span> <span class="o">=</span> <span class="n">sync</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">WandBLogger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Events</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">WandBLogger</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler OptimizerParamsHandler works only with WandBLogger&quot;</span><span class="p">)</span>
+
+        <span class="n">global_step</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">get_event_attrib_value</span><span class="p">(</span><span class="n">event_name</span><span class="p">)</span>
+        <span class="n">tag_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">/&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tag_prefix</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="si">}</span><span class="s2">/group_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">param_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param_group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">param_groups</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">global_step</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sync</span><span class="p">)</span></div>
 </pre></div>
 
              </article>

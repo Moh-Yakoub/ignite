@@ -132,7 +132,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -196,7 +196,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -210,7 +210,8 @@
             <dd><a href="../../../../v0.3.0/index.html">v0.3.0</a></dd>
             <dd><a href="../../../../v0.4.0.post1/index.html">v0.4.0.post1</a></dd>
             <dd><a href="../../../../v0.4.1/index.html">v0.4.1</a></dd>
-            <dd><a href="../../../../v0.4.2/_modules/ignite/contrib/metrics/precision_recall_curve.html">v0.4.2</a></dd>
+            <dd><a href="../../../../v0.4.2/index.html">v0.4.2</a></dd>
+            <dd><a href="../../../../v0.4.3/_modules/ignite/contrib/metrics/precision_recall_curve.html">v0.4.3</a></dd>
             <dd><a href="../../../../v0.4rc.0.post1/index.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -285,10 +286,14 @@
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
   <h1>Source code for ignite.contrib.metrics.precision_recall_curve</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">ignite.metrics</span> <span class="kn">import</span> <span class="n">EpochMetric</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">ignite.metrics</span> <span class="kn">import</span> <span class="n">EpochMetric</span>
 
 
-<span class="k">def</span> <span class="nf">precision_recall_curve_compute_fn</span><span class="p">(</span><span class="n">y_preds</span><span class="p">,</span> <span class="n">y_targets</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">precision_recall_curve_compute_fn</span><span class="p">(</span><span class="n">y_preds</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y_targets</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">precision_recall_curve</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -310,7 +315,7 @@
 <span class="sd">            :class:`~ignite.engine.engine.Engine`&#39;s ``process_function``&#39;s output into the</span>
 <span class="sd">            form expected by the metric. This can be useful if, for example, you have a multi-output model and</span>
 <span class="sd">            you want to compute the metric with respect to one of the outputs.</span>
-<span class="sd">        check_compute_fn (bool): Optional default False. If True, `precision_recall_curve</span>
+<span class="sd">        check_compute_fn (bool): Default False. If True, `precision_recall_curve</span>
 <span class="sd">            &lt;http://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_curve.html</span>
 <span class="sd">            #sklearn.metrics.precision_recall_curve&gt;`_ is run on the first batch of data to ensure there are</span>
 <span class="sd">            no issues. User will be warned in case there are any issues computing the function.</span>
@@ -329,7 +334,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_transform</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">check_compute_fn</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_transform</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">check_compute_fn</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">PrecisionRecallCurve</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">precision_recall_curve_compute_fn</span><span class="p">,</span> <span class="n">output_transform</span><span class="o">=</span><span class="n">output_transform</span><span class="p">,</span> <span class="n">check_compute_fn</span><span class="o">=</span><span class="n">check_compute_fn</span>
         <span class="p">)</span></div>

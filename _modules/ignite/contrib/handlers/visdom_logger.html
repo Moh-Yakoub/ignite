@@ -132,7 +132,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -196,7 +196,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -210,7 +210,8 @@
             <dd><a href="../../../../v0.3.0/index.html">v0.3.0</a></dd>
             <dd><a href="../../../../v0.4.0.post1/index.html">v0.4.0.post1</a></dd>
             <dd><a href="../../../../v0.4.1/index.html">v0.4.1</a></dd>
-            <dd><a href="../../../../v0.4.2/_modules/ignite/contrib/handlers/visdom_logger.html">v0.4.2</a></dd>
+            <dd><a href="../../../../v0.4.2/index.html">v0.4.2</a></dd>
+            <dd><a href="../../../../v0.4.3/_modules/ignite/contrib/handlers/visdom_logger.html">v0.4.3</a></dd>
             <dd><a href="../../../../v0.4rc.0.post1/index.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -288,8 +289,11 @@
 <span></span><span class="kn">import</span> <span class="nn">numbers</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">from</span> <span class="nn">torch.optim</span> <span class="kn">import</span> <span class="n">Optimizer</span>
 
 <span class="kn">from</span> <span class="nn">ignite.contrib.handlers.base_logger</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">BaseLogger</span><span class="p">,</span>
@@ -297,6 +301,7 @@
     <span class="n">BaseOutputHandler</span><span class="p">,</span>
     <span class="n">BaseWeightsScalarHandler</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ignite.engine</span> <span class="kn">import</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">Events</span>
 <span class="kn">from</span> <span class="nn">ignite.handlers</span> <span class="kn">import</span> <span class="n">global_step_from_engine</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -309,326 +314,6 @@
 <span class="p">]</span>
 
 
-<span class="k">class</span> <span class="nc">_BaseVisDrawer</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">windows</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">show_legend</span> <span class="o">=</span> <span class="n">show_legend</span>
-
-    <span class="k">def</span> <span class="nf">add_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">event_name</span><span class="p">,</span> <span class="n">global_step</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Helper method to log a scalar with VisdomLogger.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            logger (VisdomLogger): visdom logger</span>
-<span class="sd">            k (str): scalar name which is used to set window title and y-axis label</span>
-<span class="sd">            v (int or float): scalar value, y-axis value</span>
-<span class="sd">            event_name: Event name which is used to setup x-axis label. Valid events are from</span>
-<span class="sd">                :class:`~ignite.engine.events.Events` or any `event_name` added by</span>
-<span class="sd">                :meth:`~ignite.engine.engine.Engine.register_events`.</span>
-<span class="sd">            global_step (int): global step, x-axis value</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;win&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s2">&quot;opts&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span> <span class="s2">&quot;xlabel&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">event_name</span><span class="p">),</span> <span class="s2">&quot;ylabel&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span> <span class="s2">&quot;showlegend&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_legend</span><span class="p">},</span>
-            <span class="p">}</span>
-
-        <span class="n">update</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;win&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;append&quot;</span>
-
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;X&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">global_step</span><span class="p">,],</span>
-            <span class="s2">&quot;Y&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">v</span><span class="p">,],</span>
-            <span class="s2">&quot;env&quot;</span><span class="p">:</span> <span class="n">logger</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
-            <span class="s2">&quot;win&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;win&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;update&quot;</span><span class="p">:</span> <span class="n">update</span><span class="p">,</span>
-            <span class="s2">&quot;opts&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;opts&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
-        <span class="p">}</span>
-
-        <span class="n">future</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">line</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;win&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;win&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-
-
-<div class="viewcode-block" id="OutputHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.visdom_logger.OutputHandler">[docs]</a><span class="k">class</span> <span class="nc">OutputHandler</span><span class="p">(</span><span class="n">BaseOutputHandler</span><span class="p">,</span> <span class="n">_BaseVisDrawer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Helper handler to log engine&#39;s output and/or metrics</span>
-
-<span class="sd">    Examples:</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from ignite.contrib.handlers.visdom_logger import *</span>
-
-<span class="sd">            # Create a logger</span>
-<span class="sd">            vd_logger = VisdomLogger()</span>
-
-<span class="sd">            # Attach the logger to the evaluator on the validation dataset and log NLL, Accuracy metrics after</span>
-<span class="sd">            # each epoch. We setup `global_step_transform=global_step_from_engine(trainer)` to take the epoch</span>
-<span class="sd">            # of the `trainer`:</span>
-<span class="sd">            vd_logger.attach(</span>
-<span class="sd">                evaluator,</span>
-<span class="sd">                log_handler=OutputHandler(</span>
-<span class="sd">                    tag=&quot;validation&quot;,</span>
-<span class="sd">                    metric_names=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
-<span class="sd">                    global_step_transform=global_step_from_engine(trainer)</span>
-<span class="sd">                ),</span>
-<span class="sd">                event_name=Events.EPOCH_COMPLETED</span>
-<span class="sd">            )</span>
-<span class="sd">            # or equivalently</span>
-<span class="sd">            vd_logger.attach_output_handler(</span>
-<span class="sd">                evaluator,</span>
-<span class="sd">                event_name=Events.EPOCH_COMPLETED,</span>
-<span class="sd">                tag=&quot;validation&quot;,</span>
-<span class="sd">                metric_names=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
-<span class="sd">                global_step_transform=global_step_from_engine(trainer)</span>
-<span class="sd">            )</span>
-
-<span class="sd">        Another example, where model is evaluated every 500 iterations:</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from ignite.contrib.handlers.visdom_logger import *</span>
-
-<span class="sd">            @trainer.on(Events.ITERATION_COMPLETED(every=500))</span>
-<span class="sd">            def evaluate(engine):</span>
-<span class="sd">                evaluator.run(validation_set, max_epochs=1)</span>
-
-<span class="sd">            vd_logger = VisdomLogger()</span>
-
-<span class="sd">            def global_step_transform(*args, **kwargs):</span>
-<span class="sd">                return trainer.state.iteration</span>
-
-<span class="sd">            # Attach the logger to the evaluator on the validation dataset and log NLL, Accuracy metrics after</span>
-<span class="sd">            # every 500 iterations. Since evaluator engine does not have access to the training iteration, we</span>
-<span class="sd">            # provide a global_step_transform to return the trainer.state.iteration for the global_step, each time</span>
-<span class="sd">            # evaluator metrics are plotted on Visdom.</span>
-
-<span class="sd">            vd_logger.attach_output_handler(</span>
-<span class="sd">                evaluator,</span>
-<span class="sd">                event_name=Events.EPOCH_COMPLETED,</span>
-<span class="sd">                tag=&quot;validation&quot;,</span>
-<span class="sd">                metrics=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
-<span class="sd">                global_step_transform=global_step_transform</span>
-<span class="sd">            )</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        tag (str): common title for all produced plots. For example, &quot;training&quot;</span>
-<span class="sd">        metric_names (list of str, optional): list of metric names to plot or a string &quot;all&quot; to plot all available</span>
-<span class="sd">            metrics.</span>
-<span class="sd">        output_transform (callable, optional): output transform function to prepare `engine.state.output` as a number.</span>
-<span class="sd">            For example, `output_transform = lambda output: output`</span>
-<span class="sd">            This function can also return a dictionary, e.g `{&quot;loss&quot;: loss1, &quot;another_loss&quot;: loss2}` to label the plot</span>
-<span class="sd">            with corresponding keys.</span>
-<span class="sd">        global_step_transform (callable, optional): global step transform function to output a desired global step.</span>
-<span class="sd">            Input of the function is `(engine, event_name)`. Output of function should be an integer.</span>
-<span class="sd">            Default is None, global_step based on attached engine. If provided,</span>
-<span class="sd">            uses function output as global_step. To setup global step from another engine, please use</span>
-<span class="sd">            :meth:`~ignite.contrib.handlers.visdom_logger.global_step_from_engine`.</span>
-<span class="sd">        show_legend (bool, optional): flag to show legend in the window</span>
-
-<span class="sd">    Note:</span>
-
-<span class="sd">        Example of `global_step_transform`:</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            def global_step_transform(engine, event_name):</span>
-<span class="sd">                return engine.state.get_event_attrib_value(event_name)</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">metric_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">global_step_transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">OutputHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">metric_names</span><span class="p">,</span> <span class="n">output_transform</span><span class="p">,</span> <span class="n">global_step_transform</span><span class="p">)</span>
-        <span class="n">_BaseVisDrawer</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">):</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">VisdomLogger</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler &#39;OutputHandler&#39; works only with VisdomLogger&quot;</span><span class="p">)</span>
-
-        <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_output_metrics</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
-
-        <span class="n">global_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_step_transform</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">event_name</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">global_step</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s2">&quot;global_step must be int, got </span><span class="si">{}</span><span class="s2">.&quot;</span>
-                <span class="s2">&quot; Please check the output of global_step_transform.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">global_step</span><span class="p">))</span>
-            <span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-
-            <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">ndimension</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-                <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">ndimension</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">values</span> <span class="o">=</span> <span class="n">value</span>
-                <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">))]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;VisdomLogger output_handler can not log &quot;</span> <span class="s2">&quot;metrics value type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
-
-            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-                <span class="n">k</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">event_name</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
-
-        <span class="n">logger</span><span class="o">.</span><span class="n">_save</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="OptimizerParamsHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.visdom_logger.OptimizerParamsHandler">[docs]</a><span class="k">class</span> <span class="nc">OptimizerParamsHandler</span><span class="p">(</span><span class="n">BaseOptimizerParamsHandler</span><span class="p">,</span> <span class="n">_BaseVisDrawer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Helper handler to log optimizer parameters</span>
-
-<span class="sd">    Examples:</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from ignite.contrib.handlers.visdom_logger import *</span>
-
-<span class="sd">            # Create a logger</span>
-<span class="sd">            vb_logger = VisdomLogger()</span>
-
-<span class="sd">            # Attach the logger to the trainer to log optimizer&#39;s parameters, e.g. learning rate at each iteration</span>
-<span class="sd">            vd_logger.attach(</span>
-<span class="sd">                trainer,</span>
-<span class="sd">                log_handler=OptimizerParamsHandler(optimizer),</span>
-<span class="sd">                event_name=Events.ITERATION_STARTED</span>
-<span class="sd">            )</span>
-<span class="sd">            # or equivalently</span>
-<span class="sd">            vd_logger.attach_opt_params_handler(</span>
-<span class="sd">                trainer,</span>
-<span class="sd">                event_name=Events.ITERATION_STARTED,</span>
-<span class="sd">                optimizer=optimizer</span>
-<span class="sd">            )</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        optimizer (torch.optim.Optimizer or object): torch optimizer or any object with attribute ``param_groups``</span>
-<span class="sd">            as a sequence.</span>
-<span class="sd">        param_name (str): parameter name</span>
-<span class="sd">        tag (str, optional): common title for all produced plots. For example, &quot;generator&quot;</span>
-<span class="sd">        show_legend (bool, optional): flag to show legend in the window</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">param_name</span><span class="o">=</span><span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">OptimizerParamsHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
-        <span class="n">_BaseVisDrawer</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">VisdomLogger</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler OptimizerParamsHandler works only with VisdomLogger&quot;</span><span class="p">)</span>
-
-        <span class="n">global_step</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">get_event_attrib_value</span><span class="p">(</span><span class="n">event_name</span><span class="p">)</span>
-        <span class="n">tag_prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">/group_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag_prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span> <span class="nb">float</span><span class="p">(</span><span class="n">param_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">])</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param_group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">param_groups</span><span class="p">)</span>
-        <span class="p">}</span>
-
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">event_name</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
-
-        <span class="n">logger</span><span class="o">.</span><span class="n">_save</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="WeightsScalarHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.visdom_logger.WeightsScalarHandler">[docs]</a><span class="k">class</span> <span class="nc">WeightsScalarHandler</span><span class="p">(</span><span class="n">BaseWeightsScalarHandler</span><span class="p">,</span> <span class="n">_BaseVisDrawer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Helper handler to log model&#39;s weights as scalars.</span>
-<span class="sd">    Handler iterates over named parameters of the model, applies reduction function to each parameter</span>
-<span class="sd">    produce a scalar and then logs the scalar.</span>
-
-<span class="sd">    Examples:</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from ignite.contrib.handlers.visdom_logger import *</span>
-
-<span class="sd">            # Create a logger</span>
-<span class="sd">            vd_logger = VisdomLogger()</span>
-
-<span class="sd">            # Attach the logger to the trainer to log model&#39;s weights norm after each iteration</span>
-<span class="sd">            vd_logger.attach(</span>
-<span class="sd">                trainer,</span>
-<span class="sd">                event_name=Events.ITERATION_COMPLETED,</span>
-<span class="sd">                log_handler=WeightsScalarHandler(model, reduction=torch.norm)</span>
-<span class="sd">            )</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        model (torch.nn.Module): model to log weights</span>
-<span class="sd">        reduction (callable): function to reduce parameters into scalar</span>
-<span class="sd">        tag (str, optional): common title for all produced plots. For example, &quot;generator&quot;</span>
-<span class="sd">        show_legend (bool, optional): flag to show legend in the window</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">WeightsScalarHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">reduction</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span>
-        <span class="n">_BaseVisDrawer</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">):</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">VisdomLogger</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler &#39;WeightsScalarHandler&#39; works only with VisdomLogger&quot;</span><span class="p">)</span>
-
-        <span class="n">global_step</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">get_event_attrib_value</span><span class="p">(</span><span class="n">event_name</span><span class="p">)</span>
-        <span class="n">tag_prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
-            <span class="n">k</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">weights_</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag_prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-            <span class="n">v</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">event_name</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
-
-        <span class="n">logger</span><span class="o">.</span><span class="n">_save</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="GradsScalarHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.visdom_logger.GradsScalarHandler">[docs]</a><span class="k">class</span> <span class="nc">GradsScalarHandler</span><span class="p">(</span><span class="n">BaseWeightsScalarHandler</span><span class="p">,</span> <span class="n">_BaseVisDrawer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Helper handler to log model&#39;s gradients as scalars.</span>
-<span class="sd">    Handler iterates over the gradients of named parameters of the model, applies reduction function to each parameter</span>
-<span class="sd">    produce a scalar and then logs the scalar.</span>
-
-<span class="sd">    Examples:</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from ignite.contrib.handlers.visdom_logger import *</span>
-
-<span class="sd">            # Create a logger</span>
-<span class="sd">            vd_logger = VisdomLogger()</span>
-
-<span class="sd">            # Attach the logger to the trainer to log model&#39;s weights norm after each iteration</span>
-<span class="sd">            vd_logger.attach(</span>
-<span class="sd">                trainer,</span>
-<span class="sd">                event_name=Events.ITERATION_COMPLETED,</span>
-<span class="sd">                log_handler=GradsScalarHandler(model, reduction=torch.norm)</span>
-<span class="sd">            )</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        model (torch.nn.Module): model to log weights</span>
-<span class="sd">        reduction (callable): function to reduce parameters into scalar</span>
-<span class="sd">        tag (str, optional): common title for all produced plots. For example, &quot;generator&quot;</span>
-<span class="sd">        show_legend (bool, optional): flag to show legend in the window</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">GradsScalarHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">reduction</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
-        <span class="n">_BaseVisDrawer</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">VisdomLogger</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler &#39;GradsScalarHandler&#39; works only with VisdomLogger&quot;</span><span class="p">)</span>
-
-        <span class="n">global_step</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">get_event_attrib_value</span><span class="p">(</span><span class="n">event_name</span><span class="p">)</span>
-        <span class="n">tag_prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
-            <span class="n">k</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">grads_</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag_prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-            <span class="n">v</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">event_name</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
-
-        <span class="n">logger</span><span class="o">.</span><span class="n">_save</span><span class="p">()</span></div>
-
-
 <div class="viewcode-block" id="VisdomLogger"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.visdom_logger.VisdomLogger">[docs]</a><span class="k">class</span> <span class="nc">VisdomLogger</span><span class="p">(</span><span class="n">BaseLogger</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    VisdomLogger handler to log metrics, model/optimizer parameters, gradients during the training and validation.</span>
@@ -636,6 +321,7 @@
 <span class="sd">    This class requires `visdom &lt;https://github.com/facebookresearch/visdom/&gt;`_ package to be installed:</span>
 
 <span class="sd">    .. code-block:: bash</span>
+
 
 <span class="sd">        pip install git+https://github.com/facebookresearch/visdom.git</span>
 
@@ -741,7 +427,14 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">raise_exceptions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">server</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">raise_exceptions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">visdom</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -765,7 +458,7 @@
                 <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">server</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">server</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;VISDOM_SERVER_URL&quot;</span><span class="p">,</span> <span class="s2">&quot;localhost&quot;</span><span class="p">)</span>
+            <span class="n">server</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;VISDOM_SERVER_URL&quot;</span><span class="p">,</span> <span class="s2">&quot;localhost&quot;</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">port</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;VISDOM_PORT&quot;</span><span class="p">,</span> <span class="mi">8097</span><span class="p">))</span>
@@ -780,46 +473,377 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">vis</span> <span class="o">=</span> <span class="n">visdom</span><span class="o">.</span><span class="n">Visdom</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="n">server</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">raise_exceptions</span><span class="o">=</span><span class="n">raise_exceptions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">offline</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">check_connection</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;Failed to connect to Visdom server at </span><span class="si">{}</span><span class="s2">. Did you run python -m visdom.server ?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">server</span><span class="p">)</span>
-            <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">offline</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">check_connection</span><span class="p">():</span>  <span class="c1"># type: ignore[attr-defined]</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to connect to Visdom server at </span><span class="si">{</span><span class="n">server</span><span class="si">}</span><span class="s2">. Did you run python -m visdom.server ?&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">executor</span> <span class="o">=</span> <span class="n">_DummyExecutor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">executor</span> <span class="o">=</span> <span class="n">_DummyExecutor</span><span class="p">()</span>  <span class="c1"># type: Union[_DummyExecutor, &quot;ThreadPoolExecutor&quot;]</span>
         <span class="k">if</span> <span class="n">num_workers</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">executor</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">save</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">env</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">_save</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">save</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">env</span><span class="p">])</span>  <span class="c1"># type: ignore[attr-defined]</span>
 
-    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">executor</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">vis</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_create_output_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_create_output_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OutputHandler&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">OutputHandler</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_create_opt_params_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_create_opt_params_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OptimizerParamsHandler&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">OptimizerParamsHandler</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">_BaseVisDrawer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_legend</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">windows</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Any]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_legend</span> <span class="o">=</span> <span class="n">show_legend</span>
+
+    <span class="k">def</span> <span class="nf">add_scalar</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">VisdomLogger</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">global_step</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper method to log a scalar with VisdomLogger.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            logger (VisdomLogger): visdom logger</span>
+<span class="sd">            k (str): scalar name which is used to set window title and y-axis label</span>
+<span class="sd">            v (int or float): scalar value, y-axis value</span>
+<span class="sd">            event_name: Event name which is used to setup x-axis label. Valid events are from</span>
+<span class="sd">                :class:`~ignite.engine.events.Events` or any `event_name` added by</span>
+<span class="sd">                :meth:`~ignite.engine.engine.Engine.register_events`.</span>
+<span class="sd">            global_step (int): global step, x-axis value</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;win&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;opts&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span> <span class="s2">&quot;xlabel&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">event_name</span><span class="p">),</span> <span class="s2">&quot;ylabel&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span> <span class="s2">&quot;showlegend&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_legend</span><span class="p">},</span>
+            <span class="p">}</span>
+
+        <span class="n">update</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;win&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;append&quot;</span>
+
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;X&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">global_step</span><span class="p">],</span>
+            <span class="s2">&quot;Y&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">v</span><span class="p">],</span>
+            <span class="s2">&quot;env&quot;</span><span class="p">:</span> <span class="n">logger</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>  <span class="c1"># type: ignore[attr-defined]</span>
+            <span class="s2">&quot;win&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;win&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;update&quot;</span><span class="p">:</span> <span class="n">update</span><span class="p">,</span>
+            <span class="s2">&quot;opts&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;opts&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">future</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">line</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;win&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;win&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="OutputHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.visdom_logger.OutputHandler">[docs]</a><span class="k">class</span> <span class="nc">OutputHandler</span><span class="p">(</span><span class="n">BaseOutputHandler</span><span class="p">,</span> <span class="n">_BaseVisDrawer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper handler to log engine&#39;s output and/or metrics</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.contrib.handlers.visdom_logger import *</span>
+
+<span class="sd">            # Create a logger</span>
+<span class="sd">            vd_logger = VisdomLogger()</span>
+
+<span class="sd">            # Attach the logger to the evaluator on the validation dataset and log NLL, Accuracy metrics after</span>
+<span class="sd">            # each epoch. We setup `global_step_transform=global_step_from_engine(trainer)` to take the epoch</span>
+<span class="sd">            # of the `trainer`:</span>
+<span class="sd">            vd_logger.attach(</span>
+<span class="sd">                evaluator,</span>
+<span class="sd">                log_handler=OutputHandler(</span>
+<span class="sd">                    tag=&quot;validation&quot;,</span>
+<span class="sd">                    metric_names=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
+<span class="sd">                    global_step_transform=global_step_from_engine(trainer)</span>
+<span class="sd">                ),</span>
+<span class="sd">                event_name=Events.EPOCH_COMPLETED</span>
+<span class="sd">            )</span>
+<span class="sd">            # or equivalently</span>
+<span class="sd">            vd_logger.attach_output_handler(</span>
+<span class="sd">                evaluator,</span>
+<span class="sd">                event_name=Events.EPOCH_COMPLETED,</span>
+<span class="sd">                tag=&quot;validation&quot;,</span>
+<span class="sd">                metric_names=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
+<span class="sd">                global_step_transform=global_step_from_engine(trainer)</span>
+<span class="sd">            )</span>
+
+<span class="sd">        Another example, where model is evaluated every 500 iterations:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.contrib.handlers.visdom_logger import *</span>
+
+<span class="sd">            @trainer.on(Events.ITERATION_COMPLETED(every=500))</span>
+<span class="sd">            def evaluate(engine):</span>
+<span class="sd">                evaluator.run(validation_set, max_epochs=1)</span>
+
+<span class="sd">            vd_logger = VisdomLogger()</span>
+
+<span class="sd">            def global_step_transform(*args, **kwargs):</span>
+<span class="sd">                return trainer.state.iteration</span>
+
+<span class="sd">            # Attach the logger to the evaluator on the validation dataset and log NLL, Accuracy metrics after</span>
+<span class="sd">            # every 500 iterations. Since evaluator engine does not have access to the training iteration, we</span>
+<span class="sd">            # provide a global_step_transform to return the trainer.state.iteration for the global_step, each time</span>
+<span class="sd">            # evaluator metrics are plotted on Visdom.</span>
+
+<span class="sd">            vd_logger.attach_output_handler(</span>
+<span class="sd">                evaluator,</span>
+<span class="sd">                event_name=Events.EPOCH_COMPLETED,</span>
+<span class="sd">                tag=&quot;validation&quot;,</span>
+<span class="sd">                metrics=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
+<span class="sd">                global_step_transform=global_step_transform</span>
+<span class="sd">            )</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tag (str): common title for all produced plots. For example, &quot;training&quot;</span>
+<span class="sd">        metric_names (list of str, optional): list of metric names to plot or a string &quot;all&quot; to plot all available</span>
+<span class="sd">            metrics.</span>
+<span class="sd">        output_transform (callable, optional): output transform function to prepare `engine.state.output` as a number.</span>
+<span class="sd">            For example, `output_transform = lambda output: output`</span>
+<span class="sd">            This function can also return a dictionary, e.g `{&quot;loss&quot;: loss1, &quot;another_loss&quot;: loss2}` to label the plot</span>
+<span class="sd">            with corresponding keys.</span>
+<span class="sd">        global_step_transform (callable, optional): global step transform function to output a desired global step.</span>
+<span class="sd">            Input of the function is `(engine, event_name)`. Output of function should be an integer.</span>
+<span class="sd">            Default is None, global_step based on attached engine. If provided,</span>
+<span class="sd">            uses function output as global_step. To setup global step from another engine, please use</span>
+<span class="sd">            :meth:`~ignite.contrib.handlers.visdom_logger.global_step_from_engine`.</span>
+<span class="sd">        show_legend (bool, optional): flag to show legend in the window</span>
+
+<span class="sd">    Note:</span>
+
+<span class="sd">        Example of `global_step_transform`:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            def global_step_transform(engine, event_name):</span>
+<span class="sd">                return engine.state.get_event_attrib_value(event_name)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">metric_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">output_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">global_step_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">show_legend</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OutputHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">metric_names</span><span class="p">,</span> <span class="n">output_transform</span><span class="p">,</span> <span class="n">global_step_transform</span><span class="p">)</span>
+        <span class="n">_BaseVisDrawer</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">VisdomLogger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Events</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">VisdomLogger</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler &#39;OutputHandler&#39; works only with VisdomLogger&quot;</span><span class="p">)</span>
+
+        <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_output_metrics</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+
+        <span class="n">global_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_step_transform</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">event_name</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">global_step</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;global_step must be int, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">global_step</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="s2">&quot; Please check the output of global_step_transform.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+            <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[Union[float, torch.Tensor]]</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">ndimension</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+                <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">ndimension</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">value</span>  <span class="c1"># type: ignore[assignment]</span>
+                <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">))]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;VisdomLogger output_handler can not log metrics value type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">event_name</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">_save</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="OptimizerParamsHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.visdom_logger.OptimizerParamsHandler">[docs]</a><span class="k">class</span> <span class="nc">OptimizerParamsHandler</span><span class="p">(</span><span class="n">BaseOptimizerParamsHandler</span><span class="p">,</span> <span class="n">_BaseVisDrawer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper handler to log optimizer parameters</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.contrib.handlers.visdom_logger import *</span>
+
+<span class="sd">            # Create a logger</span>
+<span class="sd">            vb_logger = VisdomLogger()</span>
+
+<span class="sd">            # Attach the logger to the trainer to log optimizer&#39;s parameters, e.g. learning rate at each iteration</span>
+<span class="sd">            vd_logger.attach(</span>
+<span class="sd">                trainer,</span>
+<span class="sd">                log_handler=OptimizerParamsHandler(optimizer),</span>
+<span class="sd">                event_name=Events.ITERATION_STARTED</span>
+<span class="sd">            )</span>
+<span class="sd">            # or equivalently</span>
+<span class="sd">            vd_logger.attach_opt_params_handler(</span>
+<span class="sd">                trainer,</span>
+<span class="sd">                event_name=Events.ITERATION_STARTED,</span>
+<span class="sd">                optimizer=optimizer</span>
+<span class="sd">            )</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        optimizer (torch.optim.Optimizer or object): torch optimizer or any object with attribute ``param_groups``</span>
+<span class="sd">            as a sequence.</span>
+<span class="sd">        param_name (str): parameter name</span>
+<span class="sd">        tag (str, optional): common title for all produced plots. For example, &quot;generator&quot;</span>
+<span class="sd">        show_legend (bool, optional): flag to show legend in the window</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">:</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">param_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">show_legend</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OptimizerParamsHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+        <span class="n">_BaseVisDrawer</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">VisdomLogger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Events</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">VisdomLogger</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler OptimizerParamsHandler works only with VisdomLogger&quot;</span><span class="p">)</span>
+
+        <span class="n">global_step</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">get_event_attrib_value</span><span class="p">(</span><span class="n">event_name</span><span class="p">)</span>
+        <span class="n">tag_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">/&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tag_prefix</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="si">}</span><span class="s2">/group_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">param_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param_group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">param_groups</span><span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">event_name</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">_save</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="WeightsScalarHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.visdom_logger.WeightsScalarHandler">[docs]</a><span class="k">class</span> <span class="nc">WeightsScalarHandler</span><span class="p">(</span><span class="n">BaseWeightsScalarHandler</span><span class="p">,</span> <span class="n">_BaseVisDrawer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper handler to log model&#39;s weights as scalars.</span>
+<span class="sd">    Handler iterates over named parameters of the model, applies reduction function to each parameter</span>
+<span class="sd">    produce a scalar and then logs the scalar.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.contrib.handlers.visdom_logger import *</span>
+
+<span class="sd">            # Create a logger</span>
+<span class="sd">            vd_logger = VisdomLogger()</span>
+
+<span class="sd">            # Attach the logger to the trainer to log model&#39;s weights norm after each iteration</span>
+<span class="sd">            vd_logger.attach(</span>
+<span class="sd">                trainer,</span>
+<span class="sd">                event_name=Events.ITERATION_COMPLETED,</span>
+<span class="sd">                log_handler=WeightsScalarHandler(model, reduction=torch.norm)</span>
+<span class="sd">            )</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model (torch.nn.Module): model to log weights</span>
+<span class="sd">        reduction (callable): function to reduce parameters into scalar</span>
+<span class="sd">        tag (str, optional): common title for all produced plots. For example, &quot;generator&quot;</span>
+<span class="sd">        show_legend (bool, optional): flag to show legend in the window</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">reduction</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">show_legend</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">WeightsScalarHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">reduction</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span>
+        <span class="n">_BaseVisDrawer</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">VisdomLogger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Events</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">VisdomLogger</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler &#39;WeightsScalarHandler&#39; works only with VisdomLogger&quot;</span><span class="p">)</span>
+
+        <span class="n">global_step</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">get_event_attrib_value</span><span class="p">(</span><span class="n">event_name</span><span class="p">)</span>
+        <span class="n">tag_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">/&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tag_prefix</span><span class="si">}</span><span class="s2">weights_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">event_name</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">_save</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="GradsScalarHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.visdom_logger.GradsScalarHandler">[docs]</a><span class="k">class</span> <span class="nc">GradsScalarHandler</span><span class="p">(</span><span class="n">BaseWeightsScalarHandler</span><span class="p">,</span> <span class="n">_BaseVisDrawer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper handler to log model&#39;s gradients as scalars.</span>
+<span class="sd">    Handler iterates over the gradients of named parameters of the model, applies reduction function to each parameter</span>
+<span class="sd">    produce a scalar and then logs the scalar.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.contrib.handlers.visdom_logger import *</span>
+
+<span class="sd">            # Create a logger</span>
+<span class="sd">            vd_logger = VisdomLogger()</span>
+
+<span class="sd">            # Attach the logger to the trainer to log model&#39;s weights norm after each iteration</span>
+<span class="sd">            vd_logger.attach(</span>
+<span class="sd">                trainer,</span>
+<span class="sd">                event_name=Events.ITERATION_COMPLETED,</span>
+<span class="sd">                log_handler=GradsScalarHandler(model, reduction=torch.norm)</span>
+<span class="sd">            )</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model (torch.nn.Module): model to log weights</span>
+<span class="sd">        reduction (callable): function to reduce parameters into scalar</span>
+<span class="sd">        tag (str, optional): common title for all produced plots. For example, &quot;generator&quot;</span>
+<span class="sd">        show_legend (bool, optional): flag to show legend in the window</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">reduction</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">show_legend</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GradsScalarHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">reduction</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+        <span class="n">_BaseVisDrawer</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_legend</span><span class="o">=</span><span class="n">show_legend</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">VisdomLogger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Events</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">VisdomLogger</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler &#39;GradsScalarHandler&#39; works only with VisdomLogger&quot;</span><span class="p">)</span>
+
+        <span class="n">global_step</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">get_event_attrib_value</span><span class="p">(</span><span class="n">event_name</span><span class="p">)</span>
+        <span class="n">tag_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">/&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tag_prefix</span><span class="si">}</span><span class="s2">grads_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">event_name</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">_save</span><span class="p">()</span></div>
 
 
 <span class="k">class</span> <span class="nc">_DummyExecutor</span><span class="p">:</span>
     <span class="k">class</span> <span class="nc">_DummyFuture</span><span class="p">:</span>
-        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">result</span>
 
-        <span class="k">def</span> <span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;_DummyFuture&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_DummyExecutor</span><span class="o">.</span><span class="n">_DummyFuture</span><span class="p">(</span><span class="n">fn</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">pass</span>
 </pre></div>
 

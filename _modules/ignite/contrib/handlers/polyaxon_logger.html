@@ -132,7 +132,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -196,7 +196,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -210,7 +210,8 @@
             <dd><a href="../../../../v0.3.0/index.html">v0.3.0</a></dd>
             <dd><a href="../../../../v0.4.0.post1/index.html">v0.4.0.post1</a></dd>
             <dd><a href="../../../../v0.4.1/index.html">v0.4.1</a></dd>
-            <dd><a href="../../../../v0.4.2/_modules/ignite/contrib/handlers/polyaxon_logger.html">v0.4.2</a></dd>
+            <dd><a href="../../../../v0.4.2/index.html">v0.4.2</a></dd>
+            <dd><a href="../../../../v0.4.3/_modules/ignite/contrib/handlers/polyaxon_logger.html">v0.4.3</a></dd>
             <dd><a href="../../../../v0.4rc.0.post1/index.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -287,13 +288,116 @@
   <h1>Source code for ignite.contrib.handlers.polyaxon_logger</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numbers</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch.optim</span> <span class="kn">import</span> <span class="n">Optimizer</span>
 
 <span class="kn">from</span> <span class="nn">ignite.contrib.handlers.base_logger</span> <span class="kn">import</span> <span class="n">BaseLogger</span><span class="p">,</span> <span class="n">BaseOptimizerParamsHandler</span><span class="p">,</span> <span class="n">BaseOutputHandler</span>
+<span class="kn">from</span> <span class="nn">ignite.engine</span> <span class="kn">import</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">Events</span>
 <span class="kn">from</span> <span class="nn">ignite.handlers</span> <span class="kn">import</span> <span class="n">global_step_from_engine</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;PolyaxonLogger&quot;</span><span class="p">,</span> <span class="s2">&quot;OutputHandler&quot;</span><span class="p">,</span> <span class="s2">&quot;OptimizerParamsHandler&quot;</span><span class="p">,</span> <span class="s2">&quot;global_step_from_engine&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="PolyaxonLogger"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.polyaxon_logger.PolyaxonLogger">[docs]</a><span class="k">class</span> <span class="nc">PolyaxonLogger</span><span class="p">(</span><span class="n">BaseLogger</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    `Polyaxon &lt;https://polyaxon.com/&gt;`_ tracking client handler to log parameters and metrics during the training</span>
+<span class="sd">    and validation.</span>
+
+<span class="sd">    This class requires `polyaxon-client &lt;https://github.com/polyaxon/polyaxon-client/&gt;`_ package to be installed:</span>
+
+<span class="sd">    .. code-block:: bash</span>
+
+<span class="sd">        pip install polyaxon-client</span>
+
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.contrib.handlers.polyaxon_logger import *</span>
+
+<span class="sd">            # Create a logger</span>
+<span class="sd">            plx_logger = PolyaxonLogger()</span>
+
+<span class="sd">            # Log experiment parameters:</span>
+<span class="sd">            plx_logger.log_params(**{</span>
+<span class="sd">                &quot;seed&quot;: seed,</span>
+<span class="sd">                &quot;batch_size&quot;: batch_size,</span>
+<span class="sd">                &quot;model&quot;: model.__class__.__name__,</span>
+
+<span class="sd">                &quot;pytorch version&quot;: torch.__version__,</span>
+<span class="sd">                &quot;ignite version&quot;: ignite.__version__,</span>
+<span class="sd">                &quot;cuda version&quot;: torch.version.cuda,</span>
+<span class="sd">                &quot;device name&quot;: torch.cuda.get_device_name(0)</span>
+<span class="sd">            })</span>
+
+<span class="sd">            # Attach the logger to the trainer to log training loss at each iteration</span>
+<span class="sd">            plx_logger.attach_output_handler(</span>
+<span class="sd">                trainer,</span>
+<span class="sd">                event_name=Events.ITERATION_COMPLETED,</span>
+<span class="sd">                tag=&quot;training&quot;,</span>
+<span class="sd">                output_transform=lambda loss: {&quot;loss&quot;: loss}</span>
+<span class="sd">            )</span>
+
+<span class="sd">            # Attach the logger to the evaluator on the training dataset and log NLL, Accuracy metrics after each epoch</span>
+<span class="sd">            # We setup `global_step_transform=global_step_from_engine(trainer)` to take the epoch</span>
+<span class="sd">            # of the `trainer` instead of `train_evaluator`.</span>
+<span class="sd">            plx_logger.attach_output_handler(</span>
+<span class="sd">                train_evaluator,</span>
+<span class="sd">                event_name=Events.EPOCH_COMPLETED,</span>
+<span class="sd">                tag=&quot;training&quot;,</span>
+<span class="sd">                metric_names=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
+<span class="sd">                global_step_transform=global_step_from_engine(trainer),</span>
+<span class="sd">            )</span>
+
+<span class="sd">            # Attach the logger to the evaluator on the validation dataset and log NLL, Accuracy metrics after</span>
+<span class="sd">            # each epoch. We setup `global_step_transform=global_step_from_engine(trainer)` to take the epoch of the</span>
+<span class="sd">            # `trainer` instead of `evaluator`.</span>
+<span class="sd">            plx_logger.attach_output_handler(</span>
+<span class="sd">                evaluator,</span>
+<span class="sd">                event_name=Events.EPOCH_COMPLETED,</span>
+<span class="sd">                tag=&quot;validation&quot;,</span>
+<span class="sd">                metric_names=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
+<span class="sd">                global_step_transform=global_step_from_engine(trainer)),</span>
+<span class="sd">            )</span>
+
+<span class="sd">            # Attach the logger to the trainer to log optimizer&#39;s parameters, e.g. learning rate at each iteration</span>
+<span class="sd">            plx_logger.attach_opt_params_handler(</span>
+<span class="sd">                trainer,</span>
+<span class="sd">                event_name=Events.ITERATION_STARTED,</span>
+<span class="sd">                optimizer=optimizer,</span>
+<span class="sd">                param_name=&#39;lr&#39;  # optional</span>
+<span class="sd">            )</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        *args: Positional arguments accepted from</span>
+<span class="sd">            `Experiment &lt;https://docs.polyaxon.com/references/polyaxon-tracking-api/experiments/&gt;`_.</span>
+<span class="sd">        **kwargs: Keyword arguments accepted from</span>
+<span class="sd">            `Experiment &lt;https://docs.polyaxon.com/references/polyaxon-tracking-api/experiments/&gt;`_.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">polyaxon_client.tracking</span> <span class="kn">import</span> <span class="n">Experiment</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;This contrib module requires polyaxon-client to be installed. &quot;</span>
+                <span class="s2">&quot;Please install it with command: </span><span class="se">\n</span><span class="s2"> pip install polyaxon-client&quot;</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">experiment</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_output_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OutputHandler&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">OutputHandler</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_opt_params_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OptimizerParamsHandler&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">OptimizerParamsHandler</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="OutputHandler"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.polyaxon_logger.OutputHandler">[docs]</a><span class="k">class</span> <span class="nc">OutputHandler</span><span class="p">(</span><span class="n">BaseOutputHandler</span><span class="p">):</span>
@@ -382,35 +486,41 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">metric_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">global_step_transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">metric_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">output_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">global_step_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">OutputHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">metric_names</span><span class="p">,</span> <span class="n">output_transform</span><span class="p">,</span> <span class="n">global_step_transform</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">PolyaxonLogger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Events</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">PolyaxonLogger</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler &#39;OutputHandler&#39; works only with PolyaxonLogger&quot;</span><span class="p">)</span>
 
         <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_output_metrics</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
 
-        <span class="n">global_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_step_transform</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">event_name</span><span class="p">)</span>
+        <span class="n">global_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_step_transform</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">event_name</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">global_step</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s2">&quot;global_step must be int, got </span><span class="si">{}</span><span class="s2">.&quot;</span>
-                <span class="s2">&quot; Please check the output of global_step_transform.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">global_step</span><span class="p">))</span>
+                <span class="sa">f</span><span class="s2">&quot;global_step must be int, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">global_step</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="s2">&quot; Please check the output of global_step_transform.&quot;</span>
             <span class="p">)</span>
 
-        <span class="n">rendered_metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="n">global_step</span><span class="p">}</span>
+        <span class="n">rendered_metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="n">global_step</span><span class="p">}</span>  <span class="c1"># type: Dict[str, Union[float, numbers.Number]]</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">):</span>
-                <span class="n">rendered_metrics</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">key</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="n">rendered_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">ndimension</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">rendered_metrics</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">key</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                <span class="n">rendered_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">ndimension</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
-                    <span class="n">rendered_metrics</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                    <span class="n">rendered_metrics</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;PolyaxonLogger output_handler can not log &quot;</span> <span class="s2">&quot;metrics value type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PolyaxonLogger output_handler can not log metrics value type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">log_metrics</span><span class="p">(</span><span class="o">**</span><span class="n">rendered_metrics</span><span class="p">)</span></div>
 
@@ -447,121 +557,21 @@
 <span class="sd">        tag (str, optional): common title for all produced plots. For example, &quot;generator&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">param_name</span><span class="o">=</span><span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">:</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">param_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">OptimizerParamsHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">PolyaxonLogger</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Events</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">PolyaxonLogger</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Handler OptimizerParamsHandler works only with PolyaxonLogger&quot;</span><span class="p">)</span>
 
         <span class="n">global_step</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">get_event_attrib_value</span><span class="p">(</span><span class="n">event_name</span><span class="p">)</span>
-        <span class="n">tag_prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">tag_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="si">}</span><span class="s2">/&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
         <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">/group_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag_prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span> <span class="nb">float</span><span class="p">(</span><span class="n">param_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">])</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tag_prefix</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="si">}</span><span class="s2">/group_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">param_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_name</span><span class="p">])</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param_group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">param_groups</span><span class="p">)</span>
         <span class="p">}</span>
         <span class="n">params</span><span class="p">[</span><span class="s2">&quot;step&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_step</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">log_metrics</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="PolyaxonLogger"><a class="viewcode-back" href="../../../../contrib/handlers.html#ignite.contrib.handlers.polyaxon_logger.PolyaxonLogger">[docs]</a><span class="k">class</span> <span class="nc">PolyaxonLogger</span><span class="p">(</span><span class="n">BaseLogger</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    `Polyaxon &lt;https://polyaxon.com/&gt;`_ tracking client handler to log parameters and metrics during the training</span>
-<span class="sd">    and validation.</span>
-
-<span class="sd">    This class requires `polyaxon-client &lt;https://github.com/polyaxon/polyaxon-client/&gt;`_ package to be installed:</span>
-
-<span class="sd">    .. code-block:: bash</span>
-
-<span class="sd">        pip install polyaxon-client</span>
-
-
-<span class="sd">    Examples:</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">            from ignite.contrib.handlers.polyaxon_logger import *</span>
-
-<span class="sd">            # Create a logger</span>
-<span class="sd">            plx_logger = PolyaxonLogger()</span>
-
-<span class="sd">            # Log experiment parameters:</span>
-<span class="sd">            plx_logger.log_params(**{</span>
-<span class="sd">                &quot;seed&quot;: seed,</span>
-<span class="sd">                &quot;batch_size&quot;: batch_size,</span>
-<span class="sd">                &quot;model&quot;: model.__class__.__name__,</span>
-
-<span class="sd">                &quot;pytorch version&quot;: torch.__version__,</span>
-<span class="sd">                &quot;ignite version&quot;: ignite.__version__,</span>
-<span class="sd">                &quot;cuda version&quot;: torch.version.cuda,</span>
-<span class="sd">                &quot;device name&quot;: torch.cuda.get_device_name(0)</span>
-<span class="sd">            })</span>
-
-<span class="sd">            # Attach the logger to the trainer to log training loss at each iteration</span>
-<span class="sd">            plx_logger.attach_output_handler(</span>
-<span class="sd">                trainer,</span>
-<span class="sd">                event_name=Events.ITERATION_COMPLETED,</span>
-<span class="sd">                tag=&quot;training&quot;,</span>
-<span class="sd">                output_transform=lambda loss: {&quot;loss&quot;: loss}</span>
-<span class="sd">            )</span>
-
-<span class="sd">            # Attach the logger to the evaluator on the training dataset and log NLL, Accuracy metrics after each epoch</span>
-<span class="sd">            # We setup `global_step_transform=global_step_from_engine(trainer)` to take the epoch</span>
-<span class="sd">            # of the `trainer` instead of `train_evaluator`.</span>
-<span class="sd">            plx_logger.attach_output_handler(</span>
-<span class="sd">                train_evaluator,</span>
-<span class="sd">                event_name=Events.EPOCH_COMPLETED,</span>
-<span class="sd">                tag=&quot;training&quot;,</span>
-<span class="sd">                metric_names=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
-<span class="sd">                global_step_transform=global_step_from_engine(trainer),</span>
-<span class="sd">            )</span>
-
-<span class="sd">            # Attach the logger to the evaluator on the validation dataset and log NLL, Accuracy metrics after</span>
-<span class="sd">            # each epoch. We setup `global_step_transform=global_step_from_engine(trainer)` to take the epoch of the</span>
-<span class="sd">            # `trainer` instead of `evaluator`.</span>
-<span class="sd">            plx_logger.attach_output_handler(</span>
-<span class="sd">                evaluator,</span>
-<span class="sd">                event_name=Events.EPOCH_COMPLETED,</span>
-<span class="sd">                tag=&quot;validation&quot;,</span>
-<span class="sd">                metric_names=[&quot;nll&quot;, &quot;accuracy&quot;],</span>
-<span class="sd">                global_step_transform=global_step_from_engine(trainer)),</span>
-<span class="sd">            )</span>
-
-<span class="sd">            # Attach the logger to the trainer to log optimizer&#39;s parameters, e.g. learning rate at each iteration</span>
-<span class="sd">            plx_logger.attach_opt_params_handler(</span>
-<span class="sd">                trainer,</span>
-<span class="sd">                event_name=Events.ITERATION_STARTED,</span>
-<span class="sd">                optimizer=optimizer,</span>
-<span class="sd">                param_name=&#39;lr&#39;  # optional</span>
-<span class="sd">            )</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        *args: Positional arguments accepted from</span>
-<span class="sd">            `Experiment &lt;https://docs.polyaxon.com/references/polyaxon-tracking-api/experiments/&gt;`_.</span>
-<span class="sd">        **kwargs: Keyword arguments accepted from</span>
-<span class="sd">            `Experiment &lt;https://docs.polyaxon.com/references/polyaxon-tracking-api/experiments/&gt;`_.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">polyaxon_client.tracking</span> <span class="kn">import</span> <span class="n">Experiment</span>
-        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                <span class="s2">&quot;This contrib module requires polyaxon-client to be installed. &quot;</span>
-                <span class="s2">&quot;Please install it with command: </span><span class="se">\n</span><span class="s2"> pip install polyaxon-client&quot;</span>
-            <span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">experiment</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_create_output_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">OutputHandler</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_create_opt_params_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">OptimizerParamsHandler</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
 
              </article>

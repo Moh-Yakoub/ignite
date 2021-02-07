@@ -132,7 +132,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -196,7 +196,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -210,7 +210,8 @@
             <dd><a href="../../v0.3.0/index.html">v0.3.0</a></dd>
             <dd><a href="../../v0.4.0.post1/index.html">v0.4.0.post1</a></dd>
             <dd><a href="../../v0.4.1/index.html">v0.4.1</a></dd>
-            <dd><a href="../../v0.4.2/_modules/ignite/utils.html">v0.4.2</a></dd>
+            <dd><a href="../../v0.4.2/index.html">v0.4.2</a></dd>
+            <dd><a href="../../v0.4.3/_modules/ignite/utils.html">v0.4.3</a></dd>
             <dd><a href="../../v0.4rc.0.post1/index.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -286,9 +287,12 @@
               
   <h1>Source code for ignite.utils</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">collections.abc</span> <span class="k">as</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TextIO</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 
@@ -328,26 +332,33 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
         <span class="k">return</span> <span class="n">input_</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_</span><span class="p">)({</span><span class="n">k</span><span class="p">:</span> <span class="n">apply_to_type</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">input_type</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">input_</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">Callable</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_</span><span class="p">))(</span>
+            <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">apply_to_type</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">input_type</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">input_</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="s2">&quot;_fields&quot;</span><span class="p">):</span>  <span class="c1"># namedtuple</span>
-        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_</span><span class="p">)(</span><span class="o">*</span><span class="p">(</span><span class="n">apply_to_type</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">input_type</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">input_</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">Callable</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_</span><span class="p">))(</span><span class="o">*</span><span class="p">(</span><span class="n">apply_to_type</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">input_type</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">input_</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Sequence</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_</span><span class="p">)([</span><span class="n">apply_to_type</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">input_type</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">input_</span><span class="p">])</span>
-    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">((</span><span class="s2">&quot;input must contain </span><span class="si">{}</span><span class="s2">, dicts or lists; found </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_type</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_</span><span class="p">))))</span></div>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">Callable</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_</span><span class="p">))([</span><span class="n">apply_to_type</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">input_type</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">input_</span><span class="p">])</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">((</span><span class="sa">f</span><span class="s2">&quot;input must contain </span><span class="si">{</span><span class="n">input_type</span><span class="si">}</span><span class="s2">, dicts or lists; found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="to_onehot"><a class="viewcode-back" href="../../utils.html#ignite.utils.to_onehot">[docs]</a><span class="k">def</span> <span class="nf">to_onehot</span><span class="p">(</span><span class="n">indices</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Convert a tensor of indices of any shape `(N, ...)` to a</span>
 <span class="sd">    tensor of one-hot indicators of shape `(N, num_classes, ...) and of type uint8. Output&#39;s device is equal to the</span>
 <span class="sd">    input&#39;s device`.</span>
+
+<span class="sd">    .. versionchanged:: 0.4.3</span>
+<span class="sd">        This functions is now torchscriptable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">onehot</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">num_classes</span><span class="p">,</span> <span class="o">*</span><span class="n">indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">indices</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">new_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">num_classes</span><span class="p">)</span> <span class="o">+</span> <span class="n">indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">onehot</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">new_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">indices</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">onehot</span><span class="o">.</span><span class="n">scatter_</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">indices</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="setup_logger"><a class="viewcode-back" href="../../utils.html#ignite.utils.setup_logger">[docs]</a><span class="k">def</span> <span class="nf">setup_logger</span><span class="p">(</span>
     <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+    <span class="n">stream</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TextIO</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="nb">format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
     <span class="n">filepath</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">distributed_rank</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -356,11 +367,12 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        name (str, optional): new name for the logger. If None, the standard logger is used.</span>
-<span class="sd">        level (int): logging level, e.g. CRITICAL, ERROR, WARNING, INFO, DEBUG</span>
-<span class="sd">        format (str): logging format. By default, `%(asctime)s %(name)s %(levelname)s: %(message)s`</span>
+<span class="sd">        level (int): logging level, e.g. CRITICAL, ERROR, WARNING, INFO, DEBUG.</span>
+<span class="sd">        stream (TextIO, optional): logging stream. If None, the standard stream is used (sys.stderr).</span>
+<span class="sd">        format (str): logging format. By default, `%(asctime)s %(name)s %(levelname)s: %(message)s`.</span>
 <span class="sd">        filepath (str, optional): Optional logging file path. If not None, logs are written to the file.</span>
 <span class="sd">        distributed_rank (int, optional): Optional, rank in distributed configuration to avoid logger setup for workers.</span>
-<span class="sd">        If None, distributed_rank is initialized to the rank of process.</span>
+<span class="sd">            If None, distributed_rank is initialized to the rank of process.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        logging.Logger</span>
@@ -386,6 +398,8 @@
 <span class="sd">        # 2020-01-21 12:46:07,358 evaluator INFO: Epoch[1] Complete. Time taken: 00:01:02</span>
 <span class="sd">        # ...</span>
 
+<span class="sd">    .. versionchanged:: 0.4.3</span>
+<span class="sd">        Added ``stream`` parameter.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
@@ -412,7 +426,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
 
-        <span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">)</span>
         <span class="n">ch</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
         <span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
@@ -432,15 +446,52 @@
 <span class="sd">    Args:</span>
 <span class="sd">        seed (int): Random state seed</span>
 
+<span class="sd">    .. versionchanged:: 0.4.3</span>
+<span class="sd">        Added ``torch.cuda.manual_seed_all(seed)``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">manual_seed_all</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="k">pass</span></div>
+
+
+<span class="k">def</span> <span class="nf">deprecated</span><span class="p">(</span>
+    <span class="n">deprecated_in</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">removed_in</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">reasons</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span> <span class="n">raise_exception</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+
+    <span class="n">F</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">F</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">F</span><span class="p">:</span>
+        <span class="n">func_doc</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="k">if</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">deprecation_warning</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;This function has been deprecated since version </span><span class="si">{</span><span class="n">deprecated_in</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot; and will be removed in version </span><span class="si">{</span><span class="n">removed_in</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">removed_in</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s2">&quot;.</span><span class="se">\n</span><span class="s2"> Please refer to the documentation for more details.&quot;</span>
+        <span class="p">)</span>
+
+        <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">raise_exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">DeprecationWarning</span><span class="p">(</span><span class="n">deprecation_warning</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">deprecation_warning</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">appended_doc</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;.. deprecated:: </span><span class="si">{</span><span class="n">deprecated_in</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n\t</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reasons</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">reason</span> <span class="ow">in</span> <span class="n">reasons</span><span class="p">:</span>
+            <span class="n">appended_doc</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">- &quot;</span> <span class="o">+</span> <span class="n">reason</span>
+        <span class="n">wrapper</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;**Deprecated function**.</span><span class="se">\n\n</span><span class="s2">    </span><span class="si">{</span><span class="n">func_doc</span><span class="si">}{</span><span class="n">appended_doc</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">wrapper</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">decorator</span>
 </pre></div>
 
              </article>

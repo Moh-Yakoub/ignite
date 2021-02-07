@@ -132,7 +132,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -196,7 +196,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -210,7 +210,8 @@
             <dd><a href="../../../v0.3.0/index.html">v0.3.0</a></dd>
             <dd><a href="../../../v0.4.0.post1/index.html">v0.4.0.post1</a></dd>
             <dd><a href="../../../v0.4.1/index.html">v0.4.1</a></dd>
-            <dd><a href="../../../v0.4.2/_modules/ignite/engine/events.html">v0.4.2</a></dd>
+            <dd><a href="../../../v0.4.2/index.html">v0.4.2</a></dd>
+            <dd><a href="../../../v0.4.3/_modules/ignite/engine/events.html">v0.4.3</a></dd>
             <dd><a href="../../../v0.4rc.0.post1/index.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -292,14 +293,19 @@
 <span class="kn">import</span> <span class="nn">weakref</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
 <span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">DynamicClassAttribute</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
 
 <span class="kn">from</span> <span class="nn">ignite.engine.utils</span> <span class="kn">import</span> <span class="n">_check_signature</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;CallableEventWithFilter&quot;</span><span class="p">,</span> <span class="s2">&quot;EventEnum&quot;</span><span class="p">,</span> <span class="s2">&quot;Events&quot;</span><span class="p">,</span> <span class="s2">&quot;State&quot;</span><span class="p">]</span>
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">ignite.engine.engine</span> <span class="kn">import</span> <span class="n">Engine</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;CallableEventWithFilter&quot;</span><span class="p">,</span> <span class="s2">&quot;EventEnum&quot;</span><span class="p">,</span> <span class="s2">&quot;Events&quot;</span><span class="p">,</span> <span class="s2">&quot;State&quot;</span><span class="p">,</span> <span class="s2">&quot;EventsList&quot;</span><span class="p">,</span> <span class="s2">&quot;RemovableEventHandle&quot;</span><span class="p">]</span>
 
 
-<span class="k">class</span> <span class="nc">CallableEventWithFilter</span><span class="p">:</span>
+<div class="viewcode-block" id="CallableEventWithFilter"><a class="viewcode-back" href="../../../engine.html#ignite.engine.events.CallableEventWithFilter">[docs]</a><span class="k">class</span> <span class="nc">CallableEventWithFilter</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Single Event containing a filter, specifying whether the event should</span>
 <span class="sd">    be run at the current event (if the event type is correct)</span>
 
@@ -312,7 +318,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">event_filter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">event_filter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">event_filter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">event_filter</span> <span class="o">=</span> <span class="n">CallableEventWithFilter</span><span class="o">.</span><span class="n">default_event_filter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filter</span> <span class="o">=</span> <span class="n">event_filter</span>
@@ -325,12 +331,12 @@
 
     <span class="c1"># copied to be compatible to enum</span>
     <span class="nd">@DynamicClassAttribute</span>
-    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The name of the Enum member.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name_</span>
 
     <span class="nd">@DynamicClassAttribute</span>
-    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The value of the Enum member.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_</span>
 
@@ -381,7 +387,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">every_event_filter</span><span class="p">(</span><span class="n">every</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">engine</span><span class="p">:</span> <span class="s2">&quot;Engine&quot;</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">event</span> <span class="o">%</span> <span class="n">every</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">True</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -390,7 +396,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">once_event_filter</span><span class="p">(</span><span class="n">once</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">engine</span><span class="p">:</span> <span class="s2">&quot;Engine&quot;</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">event</span> <span class="o">==</span> <span class="n">once</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">True</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -398,13 +404,13 @@
         <span class="k">return</span> <span class="n">wrapper</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">default_event_filter</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">default_event_filter</span><span class="p">(</span><span class="n">engine</span><span class="p">:</span> <span class="s2">&quot;Engine&quot;</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;event=</span><span class="si">%s</span><span class="s2">, filter=</span><span class="si">%r</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">CallableEventWithFilter</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -412,16 +418,16 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">NotImplemented</span>
 
-    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name_</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">EventsList</span><span class="p">()</span> <span class="o">|</span> <span class="bp">self</span> <span class="o">|</span> <span class="n">other</span>
+    <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventsList&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">EventsList</span><span class="p">()</span> <span class="o">|</span> <span class="bp">self</span> <span class="o">|</span> <span class="n">other</span></div>
 
 
 <span class="k">class</span> <span class="nc">CallableEvents</span><span class="p">(</span><span class="n">CallableEventWithFilter</span><span class="p">):</span>
     <span class="c1"># For backward compatibility</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">CallableEvents</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;Class ignite.engine.events.CallableEvents is deprecated. It will be removed in 0.5.0. &quot;</span>
@@ -430,8 +436,38 @@
         <span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">EventEnum</span><span class="p">(</span><span class="n">CallableEventWithFilter</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
-    <span class="k">pass</span>
+<div class="viewcode-block" id="EventEnum"><a class="viewcode-back" href="../../../engine.html#ignite.engine.events.EventEnum">[docs]</a><span class="k">class</span> <span class="nc">EventEnum</span><span class="p">(</span><span class="n">CallableEventWithFilter</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>  <span class="c1"># type: ignore[misc]</span>
+    <span class="sd">&quot;&quot;&quot;Base class for all :class:`~ignite.engine.events.Events`. User defined custom events should also inherit</span>
+<span class="sd">    this class. For example, Custom events based on the loss calculation and backward pass can be created as follows:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.engine import EventEnum</span>
+
+<span class="sd">            class BackpropEvents(EventEnum):</span>
+<span class="sd">                BACKWARD_STARTED = &#39;backward_started&#39;</span>
+<span class="sd">                BACKWARD_COMPLETED = &#39;backward_completed&#39;</span>
+<span class="sd">                OPTIM_STEP_COMPLETED = &#39;optim_step_completed&#39;</span>
+
+<span class="sd">            def update(engine, batch):</span>
+<span class="sd">                # ...</span>
+<span class="sd">                loss = criterion(y_pred, y)</span>
+<span class="sd">                engine.fire_event(BackpropEvents.BACKWARD_STARTED)</span>
+<span class="sd">                loss.backward()</span>
+<span class="sd">                engine.fire_event(BackpropEvents.BACKWARD_COMPLETED)</span>
+<span class="sd">                optimizer.step()</span>
+<span class="sd">                engine.fire_event(BackpropEvents.OPTIM_STEP_COMPLETED)</span>
+<span class="sd">                # ...</span>
+
+<span class="sd">            trainer = Engine(update)</span>
+<span class="sd">            trainer.register_events(*BackpropEvents)</span>
+
+<span class="sd">            @trainer.on(BackpropEvents.BACKWARD_STARTED)</span>
+<span class="sd">            def function_before_backprop(engine):</span>
+<span class="sd">                # ...</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="Events"><a class="viewcode-back" href="../../../engine.html#ignite.engine.events.Events">[docs]</a><span class="k">class</span> <span class="nc">Events</span><span class="p">(</span><span class="n">EventEnum</span><span class="p">):</span>
@@ -448,13 +484,38 @@
 
 <span class="sd">    - EXCEPTION_RAISED : triggered when an exception is encountered</span>
 <span class="sd">    - TERMINATE_SINGLE_EPOCH : triggered when the run is about to end the current epoch,</span>
-<span class="sd">      after receiving :meth:`~ignite.engine.engine.Engine.terminate_epoch()` call.</span>
+<span class="sd">      after receiving a :meth:`~ignite.engine.engine.Engine.terminate_epoch()` or</span>
+<span class="sd">      :meth:`~ignite.engine.engine.Engine.terminate()` call.</span>
 
 <span class="sd">    - TERMINATE : triggered when the run is about to end completely,</span>
 <span class="sd">      after receiving :meth:`~ignite.engine.engine.Engine.terminate()` call.</span>
 
-<span class="sd">    - EPOCH_COMPLETED : triggered when the epoch is ended</span>
+<span class="sd">    - EPOCH_COMPLETED : triggered when the epoch is ended. Note that this is triggered even</span>
+<span class="sd">      when :meth:`~ignite.engine.engine.Engine.terminate_epoch()` is called.</span>
 <span class="sd">    - COMPLETED : triggered when engine&#39;s run is completed</span>
+
+<span class="sd">    The table below illustrates which events are triggered when various termination methods are called.</span>
+
+<span class="sd">    .. list-table::</span>
+<span class="sd">       :widths: 24 25 33 18</span>
+<span class="sd">       :header-rows: 1</span>
+
+<span class="sd">       * - Method</span>
+<span class="sd">         - EVENT_COMPLETED</span>
+<span class="sd">         - TERMINATE_SINGLE_EPOCH</span>
+<span class="sd">         - TERMINATE</span>
+<span class="sd">       * - no termination</span>
+<span class="sd">         - ✔</span>
+<span class="sd">         - ✗</span>
+<span class="sd">         - ✗</span>
+<span class="sd">       * - :meth:`~ignite.engine.engine.Engine.terminate_epoch()`</span>
+<span class="sd">         - ✔</span>
+<span class="sd">         - ✔</span>
+<span class="sd">         - ✗</span>
+<span class="sd">       * - :meth:`~ignite.engine.engine.Engine.terminate()`</span>
+<span class="sd">         - ✗</span>
+<span class="sd">         - ✔</span>
+<span class="sd">         - ✔</span>
 
 <span class="sd">    Since v0.3.0, Events become more flexible and allow to pass an event filter to the Engine:</span>
 
@@ -522,7 +583,7 @@
     <span class="n">TERMINATE</span> <span class="o">=</span> <span class="s2">&quot;terminate&quot;</span>
     <span class="n">TERMINATE_SINGLE_EPOCH</span> <span class="o">=</span> <span class="s2">&quot;terminate_single_epoch&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventsList&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">EventsList</span><span class="p">()</span> <span class="o">|</span> <span class="bp">self</span> <span class="o">|</span> <span class="n">other</span></div>
 
 
@@ -550,24 +611,24 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_events</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_events</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[Union[Events, CallableEventWithFilter]]</span>
 
-    <span class="k">def</span> <span class="nf">_append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Events</span><span class="p">,</span> <span class="n">CallableEventWithFilter</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="nf">_append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Events</span><span class="p">,</span> <span class="n">CallableEventWithFilter</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="p">(</span><span class="n">Events</span><span class="p">,</span> <span class="n">CallableEventWithFilter</span><span class="p">)):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Argument event should be Events or CallableEventWithFilter, got: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">event</span><span class="p">)))</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument event should be Events or CallableEventWithFilter, got: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">event</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Events</span><span class="p">,</span> <span class="n">CallableEventWithFilter</span><span class="p">]:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Events</span><span class="p">,</span> <span class="n">CallableEventWithFilter</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Events</span><span class="p">,</span> <span class="n">CallableEventWithFilter</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Events</span><span class="p">,</span> <span class="n">CallableEventWithFilter</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventsList&quot;</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="n">event</span><span class="o">=</span><span class="n">other</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span>
 
@@ -601,33 +662,36 @@
         <span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_COMPLETED</span><span class="p">:</span> <span class="s2">&quot;epoch&quot;</span><span class="p">,</span>
         <span class="n">Events</span><span class="o">.</span><span class="n">STARTED</span><span class="p">:</span> <span class="s2">&quot;epoch&quot;</span><span class="p">,</span>
         <span class="n">Events</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">:</span> <span class="s2">&quot;epoch&quot;</span><span class="p">,</span>
-    <span class="p">}</span>
+    <span class="p">}</span>  <span class="c1"># type: Dict[Union[str, &quot;Events&quot;, &quot;CallableEventWithFilter&quot;], str]</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epoch</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">epoch_length</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_epochs</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">batch</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dataloader</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">times</span> <span class="o">=</span> <span class="p">{</span><span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_COMPLETED</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Events</span><span class="o">.</span><span class="n">COMPLETED</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epoch_length</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[int]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_epochs</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[int]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[int]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[int]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Any]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataloader</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[Union[DataLoader, Iterable[Any]]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[int]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">times</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_COMPLETED</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">Events</span><span class="o">.</span><span class="n">COMPLETED</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>  <span class="c1"># type: Dict[str, Optional[float]]</span>
 
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_attrs</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_update_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_update_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_to_attr</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">get_event_attrib_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">CallableEventWithFilter</span><span class="p">,</span> <span class="n">Enum</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">get_event_attrib_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Events</span><span class="p">,</span> <span class="n">CallableEventWithFilter</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">event_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">State</span><span class="o">.</span><span class="n">event_to_attr</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unknown event name &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">event_name</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown event name &#39;</span><span class="si">{</span><span class="n">event_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">State</span><span class="o">.</span><span class="n">event_to_attr</span><span class="p">[</span><span class="n">event_name</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -635,7 +699,7 @@
         <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="k">return</span> <span class="n">s</span></div>
 
 
@@ -659,7 +723,7 @@
 <span class="sd">        engine = Engine()</span>
 
 <span class="sd">        def print_epoch(engine):</span>
-<span class="sd">            print(&quot;Epoch: {}&quot;.format(engine.state.epoch))</span>
+<span class="sd">            print(f&quot;Epoch: {engine.state.epoch}&quot;)</span>
 
 <span class="sd">        with engine.add_event_handler(Events.EPOCH_COMPLETED, print_epoch):</span>
 <span class="sd">            # print_epoch handler registered for a single run</span>
@@ -668,7 +732,9 @@
 <span class="sd">        # print_epoch handler is now unregistered</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">CallableEventWithFilter</span><span class="p">,</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">EventsList</span><span class="p">],</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">CallableEventWithFilter</span><span class="p">,</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">EventsList</span><span class="p">,</span> <span class="n">Events</span><span class="p">],</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="s2">&quot;Engine&quot;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">event_name</span> <span class="o">=</span> <span class="n">event_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">handler</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
@@ -689,10 +755,10 @@
             <span class="k">if</span> <span class="n">engine</span><span class="o">.</span><span class="n">has_event_handler</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_name</span><span class="p">):</span>
                 <span class="n">engine</span><span class="o">.</span><span class="n">remove_event_handler</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_name</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;RemovableEventHandle&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span></div>
 </pre></div>
 

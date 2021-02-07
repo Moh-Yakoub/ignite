@@ -134,7 +134,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -198,7 +198,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -213,6 +213,7 @@
             <dd><a href="../v0.4.0.post1/contrib/engines.html">v0.4.0.post1</a></dd>
             <dd><a href="../v0.4.1/contrib/engines.html">v0.4.1</a></dd>
             <dd><a href="../v0.4.2/contrib/engines.html">v0.4.2</a></dd>
+            <dd><a href="../v0.4.3/contrib/engines.html">v0.4.3</a></dd>
             <dd><a href="../v0.4rc.0.post1/contrib/engines.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -290,7 +291,73 @@
               
   <div class="section" id="ignite-contrib-engines">
 <h1>ignite.contrib.engines<a class="headerlink" href="#ignite-contrib-engines" title="Permalink to this headline">¶</a></h1>
-<p>Contribution module of engines and helper tools</p>
+<p>Contribution module of engines and helper tools:</p>
+<p>ignite.contrib.engines.tbptt</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.contrib.engines.tbptt.Tbptt_Events" title="ignite.contrib.engines.tbptt.Tbptt_Events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Tbptt_Events</span></code></a></p></td>
+<td><p>Aditional tbptt events.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.contrib.engines.tbptt.create_supervised_tbptt_trainer" title="ignite.contrib.engines.tbptt.create_supervised_tbptt_trainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_supervised_tbptt_trainer</span></code></a></p></td>
+<td><p>Create a trainer for truncated backprop through time supervised models.</p></td>
+</tr>
+</tbody>
+</table>
+<p>ignite.contrib.engines.common</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.add_early_stopping_by_val_score" title="ignite.contrib.engines.common.add_early_stopping_by_val_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_early_stopping_by_val_score</span></code></a></p></td>
+<td><p>Method setups early stopping handler based on the score (named by <cite>metric_name</cite>) provided by <cite>evaluator</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.gen_save_best_models_by_val_score" title="ignite.contrib.engines.common.gen_save_best_models_by_val_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gen_save_best_models_by_val_score</span></code></a></p></td>
+<td><p>Method adds a handler to <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> to save <code class="docutils literal notranslate"><span class="pre">n_saved</span></code> of best models based on the metric (named by <code class="docutils literal notranslate"><span class="pre">metric_name</span></code>) provided by <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> (i.e.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.save_best_model_by_val_score" title="ignite.contrib.engines.common.save_best_model_by_val_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_best_model_by_val_score</span></code></a></p></td>
+<td><p>Method adds a handler to <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> to save on a disk <code class="docutils literal notranslate"><span class="pre">n_saved</span></code> of best models based on the metric (named by <code class="docutils literal notranslate"><span class="pre">metric_name</span></code>) provided by <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> (i.e.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.setup_any_logging" title="ignite.contrib.engines.common.setup_any_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_any_logging</span></code></a></p></td>
+<td><p><strong>Deprecated function</strong>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.setup_clearml_logging" title="ignite.contrib.engines.common.setup_clearml_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_clearml_logging</span></code></a></p></td>
+<td><p>Method to setup ClearML logging on trainer and a list of evaluators.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.setup_common_distrib_training_handlers" title="ignite.contrib.engines.common.setup_common_distrib_training_handlers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_common_distrib_training_handlers</span></code></a></p></td>
+<td><p>Helper method to setup trainer with common handlers (it also supports distributed configuration):</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.setup_common_training_handlers" title="ignite.contrib.engines.common.setup_common_training_handlers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_common_training_handlers</span></code></a></p></td>
+<td><p>Helper method to setup trainer with common handlers (it also supports distributed configuration):</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.setup_mlflow_logging" title="ignite.contrib.engines.common.setup_mlflow_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_mlflow_logging</span></code></a></p></td>
+<td><p>Method to setup MLflow logging on trainer and a list of evaluators.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.setup_neptune_logging" title="ignite.contrib.engines.common.setup_neptune_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_neptune_logging</span></code></a></p></td>
+<td><p>Method to setup Neptune logging on trainer and a list of evaluators.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.setup_plx_logging" title="ignite.contrib.engines.common.setup_plx_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_plx_logging</span></code></a></p></td>
+<td><p>Method to setup Polyaxon logging on trainer and a list of evaluators.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.setup_tb_logging" title="ignite.contrib.engines.common.setup_tb_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_tb_logging</span></code></a></p></td>
+<td><p>Method to setup TensorBoard logging on trainer and a list of evaluators.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.setup_trains_logging" title="ignite.contrib.engines.common.setup_trains_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_trains_logging</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">setup_trains_logging</span></code> was renamed to <a class="reference internal" href="#ignite.contrib.engines.common.setup_clearml_logging" title="ignite.contrib.engines.common.setup_clearml_logging"><code class="xref py py-func docutils literal notranslate"><span class="pre">setup_clearml_logging()</span></code></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.setup_visdom_logging" title="ignite.contrib.engines.common.setup_visdom_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_visdom_logging</span></code></a></p></td>
+<td><p>Method to setup Visdom logging on trainer and a list of evaluators.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.contrib.engines.common.setup_wandb_logging" title="ignite.contrib.engines.common.setup_wandb_logging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_wandb_logging</span></code></a></p></td>
+<td><p>Method to setup WandB logging on trainer and a list of evaluators.</p></td>
+</tr>
+</tbody>
+</table>
 <div class="section" id="module-ignite.contrib.engines.tbptt">
 <span id="truncated-backpropagation-throught-time"></span><h2>Truncated Backpropagation Throught Time<a class="headerlink" href="#module-ignite.contrib.engines.tbptt" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
@@ -303,7 +370,7 @@ trainer.</p>
 
 <dl class="py function">
 <dt id="ignite.contrib.engines.tbptt.create_supervised_tbptt_trainer">
-<code class="sig-prename descclassname">ignite.contrib.engines.tbptt.</code><code class="sig-name descname">create_supervised_tbptt_trainer</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">optimizer</em>, <em class="sig-param">loss_fn</em>, <em class="sig-param">tbtt_step</em>, <em class="sig-param">dim=0</em>, <em class="sig-param">device=None</em>, <em class="sig-param">non_blocking=False</em>, <em class="sig-param">prepare_batch=&lt;function _prepare_batch&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ignite/contrib/engines/tbptt.html#create_supervised_tbptt_trainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.tbptt.create_supervised_tbptt_trainer" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">ignite.contrib.engines.tbptt.</code><code class="sig-name descname">create_supervised_tbptt_trainer</code><span class="sig-paren">(</span><em class="sig-param">model: torch.nn.modules.module.Module</em>, <em class="sig-param">optimizer: torch.optim.optimizer.Optimizer</em>, <em class="sig-param">loss_fn: torch.nn.modules.module.Module</em>, <em class="sig-param">tbtt_step: int</em>, <em class="sig-param">dim: int = 0</em>, <em class="sig-param">device: Optional[str] = None</em>, <em class="sig-param">non_blocking: bool = False</em>, <em class="sig-param">prepare_batch: Callable = &lt;function _prepare_batch&gt;</em><span class="sig-paren">)</span> &#x2192; ignite.engine.engine.Engine<a class="reference internal" href="../_modules/ignite/contrib/engines/tbptt.html#create_supervised_tbptt_trainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.tbptt.create_supervised_tbptt_trainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a trainer for truncated backprop through time supervised models.</p>
 <p>Training recurrent model on long sequences is computationally intensive as
 it requires to process the whole sequence before getting a gradient.
@@ -359,7 +426,7 @@ The <cite>model</cite> should be moved by the user before creating an optimizer.
 <span id="helper-methods-to-setup-trainer-evaluator"></span><h2>Helper methods to setup trainer/evaluator<a class="headerlink" href="#module-ignite.contrib.engines.common" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="ignite.contrib.engines.common.add_early_stopping_by_val_score">
-<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">add_early_stopping_by_val_score</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patience</span></em>, <em class="sig-param"><span class="n">evaluator</span></em>, <em class="sig-param"><span class="n">trainer</span></em>, <em class="sig-param"><span class="n">metric_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#add_early_stopping_by_val_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.add_early_stopping_by_val_score" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">add_early_stopping_by_val_score</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patience</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">evaluator</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">metric_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; ignite.handlers.early_stopping.EarlyStopping<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#add_early_stopping_by_val_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.add_early_stopping_by_val_score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Method setups early stopping handler based on the score (named by <cite>metric_name</cite>) provided by <cite>evaluator</cite>.
 Metric value should increase in order to keep training and not early stop.</p>
 <dl class="field-list simple">
@@ -373,14 +440,14 @@ Metric value should increase in order to keep training and not early stop.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">EarlyStopping</span></code> handler.</p>
+<dd class="field-even"><p>A <a class="reference internal" href="../handlers.html#ignite.handlers.EarlyStopping" title="ignite.handlers.EarlyStopping"><code class="xref py py-class docutils literal notranslate"><span class="pre">EarlyStopping</span></code></a> handler.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="ignite.contrib.engines.common.gen_save_best_models_by_val_score">
-<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">gen_save_best_models_by_val_score</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">save_handler</span></em>, <em class="sig-param"><span class="n">evaluator</span></em>, <em class="sig-param"><span class="n">models</span></em>, <em class="sig-param"><span class="n">metric_name</span></em>, <em class="sig-param"><span class="n">n_saved</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">trainer</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tag</span><span class="o">=</span><span class="default_value">'val'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#gen_save_best_models_by_val_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.gen_save_best_models_by_val_score" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">gen_save_best_models_by_val_score</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">save_handler</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Callable<span class="p">, </span>ignite.handlers.checkpoint.BaseSaveHandler<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">evaluator</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">models</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.nn.modules.module.Module<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>torch.nn.modules.module.Module<span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">metric_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">n_saved</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">3</span></em>, <em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>ignite.engine.engine.Engine<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'val'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; ignite.handlers.checkpoint.Checkpoint<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#gen_save_best_models_by_val_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.gen_save_best_models_by_val_score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Method adds a handler to <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> to save <code class="docutils literal notranslate"><span class="pre">n_saved</span></code> of best models based on the metric
 (named by <code class="docutils literal notranslate"><span class="pre">metric_name</span></code>) provided by <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> (i.e. <code class="docutils literal notranslate"><span class="pre">evaluator.state.metrics[metric_name]</span></code>).
 Models with highest metric value will be retained. The logic of how to store objects is delegated to
@@ -406,14 +473,14 @@ implemented <code class="docutils literal notranslate"><span class="pre">state_d
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Checkpoint</span></code> handler.</p>
+<dd class="field-even"><p>A <a class="reference internal" href="../handlers.html#ignite.handlers.Checkpoint" title="ignite.handlers.Checkpoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Checkpoint</span></code></a> handler.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="ignite.contrib.engines.common.save_best_model_by_val_score">
-<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">save_best_model_by_val_score</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_path</span></em>, <em class="sig-param"><span class="n">evaluator</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">metric_name</span></em>, <em class="sig-param"><span class="n">n_saved</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">trainer</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tag</span><span class="o">=</span><span class="default_value">'val'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#save_best_model_by_val_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.save_best_model_by_val_score" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">save_best_model_by_val_score</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">evaluator</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span></em>, <em class="sig-param"><span class="n">metric_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">n_saved</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">3</span></em>, <em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>ignite.engine.engine.Engine<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'val'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; ignite.handlers.checkpoint.Checkpoint<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#save_best_model_by_val_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.save_best_model_by_val_score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Method adds a handler to <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> to save on a disk <code class="docutils literal notranslate"><span class="pre">n_saved</span></code> of best models based on the metric
 (named by <code class="docutils literal notranslate"><span class="pre">metric_name</span></code>) provided by <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> (i.e. <code class="docutils literal notranslate"><span class="pre">evaluator.state.metrics[metric_name]</span></code>).
 Models with highest metric value will be retained.</p>
@@ -432,24 +499,65 @@ Models with highest metric value will be retained.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Checkpoint</span></code> handler.</p>
+<dd class="field-even"><p>A <a class="reference internal" href="../handlers.html#ignite.handlers.Checkpoint" title="ignite.handlers.Checkpoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">Checkpoint</span></code></a> handler.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="ignite.contrib.engines.common.setup_any_logging">
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_any_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">logger</span><span class="p">:</span> <span class="n">ignite.contrib.handlers.base_logger.BaseLogger</span></em>, <em class="sig-param"><span class="n">logger_module</span><span class="p">:</span> <span class="n">Any</span></em>, <em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>torch.optim.optimizer.Optimizer<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>torch.optim.optimizer.Optimizer<span class="p">]</span><span class="p">, </span>Dict<span class="p">[</span>None<span class="p">, </span>torch.optim.optimizer.Optimizer<span class="p">]</span><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>ignite.engine.engine.Engine<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>ignite.engine.engine.Engine<span class="p">]</span><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_any_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_any_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Deprecated function</strong>.</p>
+<div class="deprecated">
+<ul>
+<span class="versionmodified deprecated">Deprecated since version 0.4.0: </span><li><p>Please use instead: setup_tb_logging, setup_visdom_logging or setup_mlflow_logging etc.</p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="ignite.contrib.engines.common.setup_clearml_logging">
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_clearml_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>torch.optim.optimizer.Optimizer<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>torch.optim.optimizer.Optimizer<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>ignite.engine.engine.Engine<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>ignite.engine.engine.Engine<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; ignite.contrib.handlers.clearml_logger.ClearMLLogger<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_clearml_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_clearml_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to setup ClearML logging on trainer and a list of evaluators. Logged metrics are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Training metrics, e.g. running average loss values</p></li>
+<li><p>Learning rate(s)</p></li>
+<li><p>Evaluation metrics</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trainer</strong> (<a class="reference internal" href="../engine.html#ignite.engine.engine.Engine" title="ignite.engine.engine.Engine"><em>Engine</em></a>) – trainer engine</p></li>
+<li><p><strong>optimizers</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/optim.html#torch.optim.Optimizer" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.optim.Optimizer</em></a><em> or </em><em>dict of torch.optim.Optimizer</em><em>, </em><em>optional</em>) – single or dictionary of
+torch optimizers. If a dictionary, keys are used as tags arguments for logging.</p></li>
+<li><p><strong>evaluators</strong> (<a class="reference internal" href="../engine.html#ignite.engine.engine.Engine" title="ignite.engine.engine.Engine"><em>Engine</em></a><em> or </em><em>dict of Engine</em><em>, </em><em>optional</em>) – single or dictionary of evaluators. If a dictionary,
+keys are used as tags arguments for logging.</p></li>
+<li><p><strong>log_every_iters</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – interval for loggers attached to iteration events. To log every iteration,
+value can be set to 1 or None.</p></li>
+<li><p><strong>**kwargs</strong> – optional keyword args to be passed to construct the logger.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><a class="reference internal" href="handlers.html#ignite.contrib.handlers.clearml_logger.ClearMLLogger" title="ignite.contrib.handlers.clearml_logger.ClearMLLogger"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClearMLLogger</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="ignite.contrib.engines.common.setup_common_distrib_training_handlers">
-<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_common_distrib_training_handlers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span></em>, <em class="sig-param"><span class="n">train_sampler</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">to_save</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">save_every_iters</span><span class="o">=</span><span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">output_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">lr_scheduler</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">with_gpu_stats</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">output_names</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">with_pbars</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">with_pbar_on_iters</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">stop_on_nan</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">clear_cuda_cache</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">save_handler</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ignite.contrib.engines.common.setup_common_distrib_training_handlers" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Helper method to setup trainer with common handlers (it also supports distributed configuration):</dt><dd><ul class="simple">
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_common_distrib_training_handlers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">train_sampler</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.utils.data.distributed.DistributedSampler<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">to_save</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Mapping<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">save_every_iters</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">output_path</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">lr_scheduler</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>ignite.contrib.handlers.param_scheduler.ParamScheduler<span class="p">, </span>torch.optim.lr_scheduler._LRScheduler<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">with_gpu_stats</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">output_names</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">with_pbars</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">with_pbar_on_iters</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>str<span class="p">, </span>torch.device<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">stop_on_nan</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">clear_cuda_cache</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">save_handler</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>Callable<span class="p">, </span>ignite.handlers.checkpoint.BaseSaveHandler<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ignite.contrib.engines.common.setup_common_distrib_training_handlers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method to setup trainer with common handlers (it also supports distributed configuration):</p>
+<blockquote>
+<div><ul class="simple">
 <li><p><a class="reference internal" href="../handlers.html#ignite.handlers.TerminateOnNan" title="ignite.handlers.TerminateOnNan"><code class="xref py py-class docutils literal notranslate"><span class="pre">TerminateOnNan</span></code></a></p></li>
 <li><p>handler to setup learning rate scheduling</p></li>
 <li><p><a class="reference internal" href="../handlers.html#ignite.handlers.ModelCheckpoint" title="ignite.handlers.ModelCheckpoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelCheckpoint</span></code></a></p></li>
 <li><p><a class="reference internal" href="../metrics.html#ignite.metrics.RunningAverage" title="ignite.metrics.RunningAverage"><code class="xref py py-class docutils literal notranslate"><span class="pre">RunningAverage</span></code></a> on <cite>update_function</cite> output</p></li>
 <li><p>Two progress bars on epochs and optionally on iterations</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -490,17 +598,17 @@ Argument is mutually exclusive with <code class="docutils literal notranslate"><
 
 <dl class="py function">
 <dt id="ignite.contrib.engines.common.setup_common_training_handlers">
-<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_common_training_handlers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span></em>, <em class="sig-param"><span class="n">train_sampler</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">to_save</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">save_every_iters</span><span class="o">=</span><span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">output_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">lr_scheduler</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">with_gpu_stats</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">output_names</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">with_pbars</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">with_pbar_on_iters</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">stop_on_nan</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">clear_cuda_cache</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">save_handler</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_common_training_handlers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_common_training_handlers" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Helper method to setup trainer with common handlers (it also supports distributed configuration):</dt><dd><ul class="simple">
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_common_training_handlers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">train_sampler</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.utils.data.distributed.DistributedSampler<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">to_save</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Mapping<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">save_every_iters</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">output_path</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">lr_scheduler</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>ignite.contrib.handlers.param_scheduler.ParamScheduler<span class="p">, </span>torch.optim.lr_scheduler._LRScheduler<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">with_gpu_stats</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">output_names</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">with_pbars</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">with_pbar_on_iters</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>str<span class="p">, </span>torch.device<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">stop_on_nan</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">clear_cuda_cache</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">save_handler</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>Callable<span class="p">, </span>ignite.handlers.checkpoint.BaseSaveHandler<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_common_training_handlers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_common_training_handlers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method to setup trainer with common handlers (it also supports distributed configuration):</p>
+<blockquote>
+<div><ul class="simple">
 <li><p><a class="reference internal" href="../handlers.html#ignite.handlers.TerminateOnNan" title="ignite.handlers.TerminateOnNan"><code class="xref py py-class docutils literal notranslate"><span class="pre">TerminateOnNan</span></code></a></p></li>
 <li><p>handler to setup learning rate scheduling</p></li>
 <li><p><a class="reference internal" href="../handlers.html#ignite.handlers.ModelCheckpoint" title="ignite.handlers.ModelCheckpoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelCheckpoint</span></code></a></p></li>
 <li><p><a class="reference internal" href="../metrics.html#ignite.metrics.RunningAverage" title="ignite.metrics.RunningAverage"><code class="xref py py-class docutils literal notranslate"><span class="pre">RunningAverage</span></code></a> on <cite>update_function</cite> output</p></li>
 <li><p>Two progress bars on epochs and optionally on iterations</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -541,15 +649,15 @@ Argument is mutually exclusive with <code class="docutils literal notranslate"><
 
 <dl class="py function">
 <dt id="ignite.contrib.engines.common.setup_mlflow_logging">
-<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_mlflow_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_mlflow_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_mlflow_logging" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Method to setup MLflow logging on trainer and a list of evaluators. Logged metrics are:</dt><dd><ul class="simple">
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_mlflow_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>torch.optim.optimizer.Optimizer<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>torch.optim.optimizer.Optimizer<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>ignite.engine.engine.Engine<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>ignite.engine.engine.Engine<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; ignite.contrib.handlers.mlflow_logger.MLflowLogger<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_mlflow_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_mlflow_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to setup MLflow logging on trainer and a list of evaluators. Logged metrics are:</p>
+<blockquote>
+<div><ul class="simple">
 <li><p>Training metrics, e.g. running average loss values</p></li>
 <li><p>Learning rate(s)</p></li>
 <li><p>Evaluation metrics</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -564,22 +672,22 @@ value can be set to 1 or None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>MLflowLogger</p>
+<dd class="field-even"><p><a class="reference internal" href="handlers.html#ignite.contrib.handlers.mlflow_logger.MLflowLogger" title="ignite.contrib.handlers.mlflow_logger.MLflowLogger"><code class="xref py py-class docutils literal notranslate"><span class="pre">MLflowLogger</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="ignite.contrib.engines.common.setup_neptune_logging">
-<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_neptune_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_neptune_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_neptune_logging" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Method to setup Neptune logging on trainer and a list of evaluators. Logged metrics are:</dt><dd><ul class="simple">
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_neptune_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>torch.optim.optimizer.Optimizer<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>torch.optim.optimizer.Optimizer<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>ignite.engine.engine.Engine<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>ignite.engine.engine.Engine<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; ignite.contrib.handlers.neptune_logger.NeptuneLogger<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_neptune_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_neptune_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to setup Neptune logging on trainer and a list of evaluators. Logged metrics are:</p>
+<blockquote>
+<div><ul class="simple">
 <li><p>Training metrics, e.g. running average loss values</p></li>
 <li><p>Learning rate(s)</p></li>
 <li><p>Evaluation metrics</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -594,22 +702,22 @@ value can be set to 1 or None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>NeptuneLogger</p>
+<dd class="field-even"><p><a class="reference internal" href="handlers.html#ignite.contrib.handlers.neptune_logger.NeptuneLogger" title="ignite.contrib.handlers.neptune_logger.NeptuneLogger"><code class="xref py py-class docutils literal notranslate"><span class="pre">NeptuneLogger</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="ignite.contrib.engines.common.setup_plx_logging">
-<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_plx_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_plx_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_plx_logging" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Method to setup Polyaxon logging on trainer and a list of evaluators. Logged metrics are:</dt><dd><ul class="simple">
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_plx_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>torch.optim.optimizer.Optimizer<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>torch.optim.optimizer.Optimizer<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>ignite.engine.engine.Engine<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>ignite.engine.engine.Engine<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; ignite.contrib.handlers.polyaxon_logger.PolyaxonLogger<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_plx_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_plx_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to setup Polyaxon logging on trainer and a list of evaluators. Logged metrics are:</p>
+<blockquote>
+<div><ul class="simple">
 <li><p>Training metrics, e.g. running average loss values</p></li>
 <li><p>Learning rate(s)</p></li>
 <li><p>Evaluation metrics</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -624,22 +732,22 @@ value can be set to 1 or None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>PolyaxonLogger</p>
+<dd class="field-even"><p><a class="reference internal" href="handlers.html#ignite.contrib.handlers.polyaxon_logger.PolyaxonLogger" title="ignite.contrib.handlers.polyaxon_logger.PolyaxonLogger"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyaxonLogger</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="ignite.contrib.engines.common.setup_tb_logging">
-<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_tb_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_path</span></em>, <em class="sig-param"><span class="n">trainer</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_tb_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_tb_logging" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Method to setup TensorBoard logging on trainer and a list of evaluators. Logged metrics are:</dt><dd><ul class="simple">
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_tb_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>torch.optim.optimizer.Optimizer<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>torch.optim.optimizer.Optimizer<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>ignite.engine.engine.Engine<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>ignite.engine.engine.Engine<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; ignite.contrib.handlers.tensorboard_logger.TensorboardLogger<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_tb_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_tb_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to setup TensorBoard logging on trainer and a list of evaluators. Logged metrics are:</p>
+<blockquote>
+<div><ul class="simple">
 <li><p>Training metrics, e.g. running average loss values</p></li>
 <li><p>Learning rate(s)</p></li>
 <li><p>Evaluation metrics</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -655,52 +763,28 @@ value can be set to 1 or None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>TensorboardLogger</p>
+<dd class="field-even"><p><a class="reference internal" href="handlers.html#ignite.contrib.handlers.tensorboard_logger.TensorboardLogger" title="ignite.contrib.handlers.tensorboard_logger.TensorboardLogger"><code class="xref py py-class docutils literal notranslate"><span class="pre">TensorboardLogger</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="ignite.contrib.engines.common.setup_trains_logging">
-<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_trains_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_trains_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_trains_logging" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Method to setup Trains logging on trainer and a list of evaluators. Logged metrics are:</dt><dd><ul class="simple">
-<li><p>Training metrics, e.g. running average loss values</p></li>
-<li><p>Learning rate(s)</p></li>
-<li><p>Evaluation metrics</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>trainer</strong> (<a class="reference internal" href="../engine.html#ignite.engine.engine.Engine" title="ignite.engine.engine.Engine"><em>Engine</em></a>) – trainer engine</p></li>
-<li><p><strong>optimizers</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/optim.html#torch.optim.Optimizer" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.optim.Optimizer</em></a><em> or </em><em>dict of torch.optim.Optimizer</em><em>, </em><em>optional</em>) – single or dictionary of
-torch optimizers. If a dictionary, keys are used as tags arguments for logging.</p></li>
-<li><p><strong>evaluators</strong> (<a class="reference internal" href="../engine.html#ignite.engine.engine.Engine" title="ignite.engine.engine.Engine"><em>Engine</em></a><em> or </em><em>dict of Engine</em><em>, </em><em>optional</em>) – single or dictionary of evaluators. If a dictionary,
-keys are used as tags arguments for logging.</p></li>
-<li><p><strong>log_every_iters</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – interval for loggers attached to iteration events. To log every iteration,
-value can be set to 1 or None.</p></li>
-<li><p><strong>**kwargs</strong> – optional keyword args to be passed to construct the logger.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>TrainsLogger</p>
-</dd>
-</dl>
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_trains_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>torch.optim.optimizer.Optimizer<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>torch.optim.optimizer.Optimizer<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>ignite.engine.engine.Engine<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>ignite.engine.engine.Engine<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; ignite.contrib.handlers.clearml_logger.ClearMLLogger<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_trains_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_trains_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">setup_trains_logging</span></code> was renamed to <a class="reference internal" href="#ignite.contrib.engines.common.setup_clearml_logging" title="ignite.contrib.engines.common.setup_clearml_logging"><code class="xref py py-func docutils literal notranslate"><span class="pre">setup_clearml_logging()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt id="ignite.contrib.engines.common.setup_visdom_logging">
-<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_visdom_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_visdom_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_visdom_logging" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Method to setup Visdom logging on trainer and a list of evaluators. Logged metrics are:</dt><dd><ul class="simple">
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_visdom_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>torch.optim.optimizer.Optimizer<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>torch.optim.optimizer.Optimizer<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>ignite.engine.engine.Engine<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>ignite.engine.engine.Engine<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; ignite.contrib.handlers.visdom_logger.VisdomLogger<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_visdom_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_visdom_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to setup Visdom logging on trainer and a list of evaluators. Logged metrics are:</p>
+<blockquote>
+<div><ul class="simple">
 <li><p>Training metrics, e.g. running average loss values</p></li>
 <li><p>Learning rate(s)</p></li>
 <li><p>Evaluation metrics</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -715,22 +799,22 @@ value can be set to 1 or None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>VisdomLogger</p>
+<dd class="field-even"><p><a class="reference internal" href="handlers.html#ignite.contrib.handlers.visdom_logger.VisdomLogger" title="ignite.contrib.handlers.visdom_logger.VisdomLogger"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisdomLogger</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="ignite.contrib.engines.common.setup_wandb_logging">
-<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_wandb_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_wandb_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_wandb_logging" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Method to setup WandB logging on trainer and a list of evaluators. Logged metrics are:</dt><dd><ul class="simple">
+<code class="sig-prename descclassname">ignite.contrib.engines.common.</code><code class="sig-name descname">setup_wandb_logging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trainer</span><span class="p">:</span> <span class="n">ignite.engine.engine.Engine</span></em>, <em class="sig-param"><span class="n">optimizers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>torch.optim.optimizer.Optimizer<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>torch.optim.optimizer.Optimizer<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">evaluators</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>ignite.engine.engine.Engine<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>ignite.engine.engine.Engine<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">log_every_iters</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; ignite.contrib.handlers.wandb_logger.WandBLogger<a class="reference internal" href="../_modules/ignite/contrib/engines/common.html#setup_wandb_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.contrib.engines.common.setup_wandb_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to setup WandB logging on trainer and a list of evaluators. Logged metrics are:</p>
+<blockquote>
+<div><ul class="simple">
 <li><p>Training metrics, e.g. running average loss values</p></li>
 <li><p>Learning rate(s)</p></li>
 <li><p>Evaluation metrics</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -745,7 +829,7 @@ value can be set to 1 or None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>WandBLogger</p>
+<dd class="field-even"><p><a class="reference internal" href="handlers.html#ignite.contrib.handlers.wandb_logger.WandBLogger" title="ignite.contrib.handlers.wandb_logger.WandBLogger"><code class="xref py py-class docutils literal notranslate"><span class="pre">WandBLogger</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>

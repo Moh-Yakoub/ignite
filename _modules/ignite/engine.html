@@ -132,7 +132,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -196,7 +196,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -210,7 +210,8 @@
             <dd><a href="../../v0.3.0/index.html">v0.3.0</a></dd>
             <dd><a href="../../v0.4.0.post1/index.html">v0.4.0.post1</a></dd>
             <dd><a href="../../v0.4.1/index.html">v0.4.1</a></dd>
-            <dd><a href="../../v0.4.2/_modules/ignite/engine.html">v0.4.2</a></dd>
+            <dd><a href="../../v0.4.2/index.html">v0.4.2</a></dd>
+            <dd><a href="../../v0.4.3/_modules/ignite/engine.html">v0.4.3</a></dd>
             <dd><a href="../../v0.4rc.0.post1/index.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -285,14 +286,15 @@
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
   <h1>Source code for ignite.engine</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span></span><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 
 <span class="kn">import</span> <span class="nn">ignite.distributed</span> <span class="k">as</span> <span class="nn">idist</span>
 <span class="kn">from</span> <span class="nn">ignite.engine.deterministic</span> <span class="kn">import</span> <span class="n">DeterministicEngine</span>
 <span class="kn">from</span> <span class="nn">ignite.engine.engine</span> <span class="kn">import</span> <span class="n">Engine</span>
-<span class="kn">from</span> <span class="nn">ignite.engine.events</span> <span class="kn">import</span> <span class="n">CallableEventWithFilter</span><span class="p">,</span> <span class="n">EventEnum</span><span class="p">,</span> <span class="n">Events</span><span class="p">,</span> <span class="n">State</span>
+<span class="kn">from</span> <span class="nn">ignite.engine.events</span> <span class="kn">import</span> <span class="n">CallableEventWithFilter</span><span class="p">,</span> <span class="n">EventEnum</span><span class="p">,</span> <span class="n">Events</span><span class="p">,</span> <span class="n">EventsList</span><span class="p">,</span> <span class="n">RemovableEventHandle</span><span class="p">,</span> <span class="n">State</span>
 <span class="kn">from</span> <span class="nn">ignite.metrics</span> <span class="kn">import</span> <span class="n">Metric</span>
 <span class="kn">from</span> <span class="nn">ignite.utils</span> <span class="kn">import</span> <span class="n">convert_tensor</span>
 
@@ -307,14 +309,16 @@
     <span class="s2">&quot;Engine&quot;</span><span class="p">,</span>
     <span class="s2">&quot;DeterministicEngine&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Events&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;EventsList&quot;</span><span class="p">,</span>
     <span class="s2">&quot;EventEnum&quot;</span><span class="p">,</span>
     <span class="s2">&quot;CallableEventWithFilter&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RemovableEventHandle&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">_prepare_batch</span><span class="p">(</span>
     <span class="n">batch</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">device</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">non_blocking</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="p">):</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span> <span class="o">...</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Prepare batch for training: pass to a device with options.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>

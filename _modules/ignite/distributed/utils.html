@@ -132,7 +132,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -196,7 +196,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -210,7 +210,8 @@
             <dd><a href="../../../v0.3.0/index.html">v0.3.0</a></dd>
             <dd><a href="../../../v0.4.0.post1/index.html">v0.4.0.post1</a></dd>
             <dd><a href="../../../v0.4.1/index.html">v0.4.1</a></dd>
-            <dd><a href="../../../v0.4.2/_modules/ignite/distributed/utils.html">v0.4.2</a></dd>
+            <dd><a href="../../../v0.4.2/index.html">v0.4.2</a></dd>
+            <dd><a href="../../../v0.4.3/_modules/ignite/distributed/utils.html">v0.4.3</a></dd>
             <dd><a href="../../../v0.4rc.0.post1/index.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -287,8 +288,7 @@
   <h1>Source code for ignite.distributed.utils</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">socket</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
-<span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Number</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 
@@ -335,7 +335,7 @@
 <span class="n">_need_to_sync</span> <span class="o">=</span> <span class="kc">True</span>
 
 
-<div class="viewcode-block" id="sync"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.sync">[docs]</a><span class="k">def</span> <span class="nf">sync</span><span class="p">(</span><span class="n">temporary</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="sync"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.sync">[docs]</a><span class="k">def</span> <span class="nf">sync</span><span class="p">(</span><span class="n">temporary</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Helper method to force this module to synchronize with current distributed context.</span>
 <span class="sd">    This method should be used when distributed context is manually created or destroyed.</span>
 
@@ -365,6 +365,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        torch.device</span>
+
+<span class="sd">    .. versionchanged:: 0.4.2</span>
+<span class="sd">        Added Horovod distributed framework.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">_need_to_sync</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_model</span><span class="p">,</span> <span class="n">_SerialModel</span><span class="p">):</span>
         <span class="n">sync</span><span class="p">(</span><span class="n">temporary</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -382,6 +385,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        str or None</span>
+
+<span class="sd">    .. versionchanged:: 0.4.2</span>
+<span class="sd">        Added Horovod distributed framework.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">_need_to_sync</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_model</span><span class="p">,</span> <span class="n">_SerialModel</span><span class="p">):</span>
         <span class="n">sync</span><span class="p">(</span><span class="n">temporary</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -389,10 +395,10 @@
     <span class="k">return</span> <span class="n">_model</span><span class="o">.</span><span class="n">backend</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="available_backends"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.available_backends">[docs]</a><span class="k">def</span> <span class="nf">available_backends</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="available_backends"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.available_backends">[docs]</a><span class="k">def</span> <span class="nf">available_backends</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Returns available backends.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">()</span>  <span class="c1"># type: Tuple[str, ...]</span>
     <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">registered_computation_models</span><span class="p">:</span>
         <span class="n">out</span> <span class="o">+=</span> <span class="n">m</span><span class="o">.</span><span class="n">available_backends</span>
     <span class="k">return</span> <span class="n">out</span></div>
@@ -406,6 +412,8 @@
 <span class="sd">    - `xla-dist` for XLA distributed configuration</span>
 <span class="sd">    - `horovod-dist` for Horovod distributed framework</span>
 
+<span class="sd">    .. versionchanged:: 0.4.2</span>
+<span class="sd">        `horovod-dist` will be returned for Horovod distributed framework.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">_need_to_sync</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_model</span><span class="p">,</span> <span class="n">_SerialModel</span><span class="p">):</span>
         <span class="n">sync</span><span class="p">(</span><span class="n">temporary</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -477,8 +485,13 @@
 
 
 <div class="viewcode-block" id="spawn"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.spawn">[docs]</a><span class="k">def</span> <span class="nf">spawn</span><span class="p">(</span>
-    <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">kwargs_dict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">nproc_per_node</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">):</span>
+    <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">args</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">,</span>
+    <span class="n">kwargs_dict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">nproc_per_node</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Spawns ``nproc_per_node`` processes that run ``fn`` with ``args``/``kwargs_dict`` and initialize</span>
 <span class="sd">    distributed configuration defined by ``backend``.</span>
 
@@ -500,7 +513,7 @@
 <span class="sd">                assert dist.get_world_size() == 4</span>
 
 <span class="sd">                device = idist.device()</span>
-<span class="sd">                assert device == torch.device(&quot;cuda:{}&quot;.format(local_rank))</span>
+<span class="sd">                assert device == torch.device(f&quot;cuda:{local_rank}&quot;)</span>
 
 
 <span class="sd">            idist.spawn(&quot;nccl&quot;, train_fn, args=(a, b, c), kwargs_dict={&quot;d&quot;: 23}, nproc_per_node=4)</span>
@@ -526,7 +539,7 @@
 <span class="sd">                assert dist.get_world_size() == nnodes * nproc_per_node</span>
 
 <span class="sd">                device = idist.device()</span>
-<span class="sd">                assert device == torch.device(&quot;cuda:{}&quot;.format(local_rank))</span>
+<span class="sd">                assert device == torch.device(f&quot;cuda:{local_rank}&quot;)</span>
 
 <span class="sd">            idist.spawn(</span>
 <span class="sd">                &quot;nccl&quot;,</span>
@@ -584,6 +597,8 @@
 <span class="sd">    .. _xmp.spawn: http://pytorch.org/xla/release/1.6/index.html#torch_xla.distributed.xla_multiprocessing.spawn</span>
 <span class="sd">    .. _hvd_run: https://horovod.readthedocs.io/en/latest/api.html#module-horovod.run</span>
 
+<span class="sd">    .. versionchanged:: 0.4.2</span>
+<span class="sd">        ``backend`` now accepts `horovod` distributed framework.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_assert_backend</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
 
@@ -598,7 +613,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="all_reduce"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.all_reduce">[docs]</a><span class="k">def</span> <span class="nf">all_reduce</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Number</span><span class="p">],</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;SUM&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Number</span><span class="p">]:</span>
+<div class="viewcode-block" id="all_reduce"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.all_reduce">[docs]</a><span class="k">def</span> <span class="nf">all_reduce</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;SUM&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Helper method to perform all reduce operation.</span>
 
 <span class="sd">    Args:</span>
@@ -616,7 +631,7 @@
     <span class="k">return</span> <span class="n">_model</span><span class="o">.</span><span class="n">all_reduce</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="all_gather"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.all_gather">[docs]</a><span class="k">def</span> <span class="nf">all_gather</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Number</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Number</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<div class="viewcode-block" id="all_gather"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.all_gather">[docs]</a><span class="k">def</span> <span class="nf">all_gather</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
     <span class="sd">&quot;&quot;&quot;Helper method to perform all gather operation.</span>
 
 <span class="sd">    Args:</span>
@@ -634,7 +649,7 @@
     <span class="k">return</span> <span class="n">_model</span><span class="o">.</span><span class="n">all_gather</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="broadcast"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.broadcast">[docs]</a><span class="k">def</span> <span class="nf">broadcast</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Number</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">src</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Number</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="broadcast"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.broadcast">[docs]</a><span class="k">def</span> <span class="nf">broadcast</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">src</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Helper method to perform broadcast operation.</span>
 
 <span class="sd">    Args:</span>
@@ -670,6 +685,7 @@
 <span class="sd">            x = idist.broadcast(x, src=0)</span>
 <span class="sd">            # &gt;&gt;&gt; x = 12.3456</span>
 
+<span class="sd">    .. versionadded:: 0.4.2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">_need_to_sync</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_model</span><span class="p">,</span> <span class="n">_SerialModel</span><span class="p">):</span>
         <span class="n">sync</span><span class="p">(</span><span class="n">temporary</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -677,7 +693,7 @@
     <span class="k">return</span> <span class="n">_model</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="n">src</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="barrier"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.barrier">[docs]</a><span class="k">def</span> <span class="nf">barrier</span><span class="p">():</span>
+<div class="viewcode-block" id="barrier"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.barrier">[docs]</a><span class="k">def</span> <span class="nf">barrier</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Helper method to synchronize all processes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">_need_to_sync</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_model</span><span class="p">,</span> <span class="n">_SerialModel</span><span class="p">):</span>
@@ -686,7 +702,7 @@
     <span class="n">_model</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="set_local_rank"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.set_local_rank">[docs]</a><span class="k">def</span> <span class="nf">set_local_rank</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<div class="viewcode-block" id="set_local_rank"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.set_local_rank">[docs]</a><span class="k">def</span> <span class="nf">set_local_rank</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Method to hint the local rank in case if torch native distributed context is created by user</span>
 <span class="sd">    without using :meth:`~ignite.distributed.initialize` or :meth:`~ignite.distributed.spawn`.</span>
 
@@ -714,7 +730,7 @@
     <span class="n">ComputationModel</span><span class="o">.</span><span class="n">_ext_local_rank</span> <span class="o">=</span> <span class="n">index</span></div>
 
 
-<span class="k">def</span> <span class="nf">_set_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">temporary</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_set_model</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">temporary</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">global</span> <span class="n">_model</span><span class="p">,</span> <span class="n">_need_to_sync</span>
     <span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
     <span class="n">_need_to_sync</span> <span class="o">=</span> <span class="kc">True</span>
@@ -722,13 +738,13 @@
         <span class="n">_need_to_sync</span> <span class="o">=</span> <span class="kc">False</span>
 
 
-<span class="k">def</span> <span class="nf">_assert_backend</span><span class="p">(</span><span class="n">backend</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_assert_backend</span><span class="p">(</span><span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">backends</span> <span class="o">=</span> <span class="n">available_backends</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">backends</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Backend should be one of &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">backends</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Backend should be one of &#39;</span><span class="si">{</span><span class="n">backends</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="initialize"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.initialize">[docs]</a><span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="initialize"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.initialize">[docs]</a><span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Initializes distributed configuration according to provided ``backend``</span>
 
 <span class="sd">    Examples:</span>
@@ -749,7 +765,7 @@
 <span class="sd">                assert dist.get_world_size() == 4</span>
 
 <span class="sd">                device = idist.device()</span>
-<span class="sd">                assert device == torch.device(&quot;cuda:{}&quot;.format(local_rank))</span>
+<span class="sd">                assert device == torch.device(f&quot;cuda:{local_rank}&quot;)</span>
 
 
 <span class="sd">            idist.initialize(&quot;nccl&quot;)</span>
@@ -768,6 +784,8 @@
 
 <span class="sd">    .. _hvd_init: https://horovod.readthedocs.io/en/latest/api.html#horovod.torch.init</span>
 
+<span class="sd">    .. versionchanged:: 0.4.2</span>
+<span class="sd">        ``backend`` now accepts `horovod` distributed framework.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">has_xla_support</span> <span class="ow">or</span> <span class="n">has_native_dist_support</span> <span class="ow">or</span> <span class="n">has_hvd_support</span><span class="p">):</span>
         <span class="c1"># nothing to do =&gt; serial model</span>
@@ -782,7 +800,7 @@
         <span class="n">_set_model</span><span class="p">(</span><span class="n">comp_model_cls</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="finalize"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.finalize">[docs]</a><span class="k">def</span> <span class="nf">finalize</span><span class="p">():</span>
+<div class="viewcode-block" id="finalize"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.finalize">[docs]</a><span class="k">def</span> <span class="nf">finalize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Finalizes distributed configuration. For example, in case of native pytorch distributed configuration,</span>
 <span class="sd">    it calls ``dist.destroy_process_group()``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -790,26 +808,26 @@
     <span class="n">_set_model</span><span class="p">(</span><span class="n">_SerialModel</span><span class="p">())</span></div>
 
 
-<div class="viewcode-block" id="show_config"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.show_config">[docs]</a><span class="k">def</span> <span class="nf">show_config</span><span class="p">():</span>
+<div class="viewcode-block" id="show_config"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.show_config">[docs]</a><span class="k">def</span> <span class="nf">show_config</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Helper method to display distributed configuration via ``logging``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># setup parallel logger</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">setup_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;distributed configuration: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_name</span><span class="p">()))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;backend: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">backend</span><span class="p">()))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;device: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">device</span><span class="p">()</span><span class="o">.</span><span class="n">type</span><span class="p">))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;hostname: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hostname</span><span class="p">()))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;world size: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_world_size</span><span class="p">()))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;rank: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_rank</span><span class="p">()))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;local rank: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_local_rank</span><span class="p">()))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;num processes per_node: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_nproc_per_node</span><span class="p">()))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;num nodes: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_nnodes</span><span class="p">()))</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;node rank: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_node_rank</span><span class="p">()))</span></div>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;distributed configuration: </span><span class="si">{</span><span class="n">model_name</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;backend: </span><span class="si">{</span><span class="n">backend</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;device: </span><span class="si">{</span><span class="n">device</span><span class="p">()</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;hostname: </span><span class="si">{</span><span class="n">hostname</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;world size: </span><span class="si">{</span><span class="n">get_world_size</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rank: </span><span class="si">{</span><span class="n">get_rank</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;local rank: </span><span class="si">{</span><span class="n">get_local_rank</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;num processes per_node: </span><span class="si">{</span><span class="n">get_nproc_per_node</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;num nodes: </span><span class="si">{</span><span class="n">get_nnodes</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;node rank: </span><span class="si">{</span><span class="n">get_node_rank</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="one_rank_only"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.one_rank_only">[docs]</a><span class="k">def</span> <span class="nf">one_rank_only</span><span class="p">(</span><span class="n">rank</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">with_barrier</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="one_rank_only"><a class="viewcode-back" href="../../../distributed.html#ignite.distributed.utils.one_rank_only">[docs]</a><span class="k">def</span> <span class="nf">one_rank_only</span><span class="p">(</span><span class="n">rank</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">with_barrier</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Decorator to filter handlers wrt a rank number</span>
 
 <span class="sd">    Args:</span>
@@ -831,9 +849,9 @@
 <span class="sd">            ...</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_one_rank_only</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_one_rank_only</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
         <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="n">rank</span><span class="p">:</span>
                 <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>

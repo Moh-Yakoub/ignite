@@ -134,7 +134,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -198,7 +198,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -213,6 +213,7 @@
             <dd><a href="v0.4.0.post1/concepts.html">v0.4.0.post1</a></dd>
             <dd><a href="v0.4.1/concepts.html">v0.4.1</a></dd>
             <dd><a href="v0.4.2/concepts.html">v0.4.2</a></dd>
+            <dd><a href="v0.4.3/concepts.html">v0.4.3</a></dd>
             <dd><a href="v0.4rc.0.post1/concepts.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -330,15 +331,15 @@ Similarly, model evaluation can be done with an engine that runs a single time o
 function can return everything user wants. Output is set to <code class="docutils literal notranslate"><span class="pre">trainer.state.output</span></code> and can be used further for any type of processing.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>By default, epoch length is defined by <code class="docutils literal notranslate"><span class="pre">len(data)</span></code>. However, user can also manually define the epoch length as a
-number of iterations to loop. In this way the input data can be an iterator.</p>
+<p>By default, epoch length is defined by <code class="docutils literal notranslate"><span class="pre">len(data)</span></code>. However, a user can also manually define the epoch length as a
+number of iterations to loop over. In this way, the input data can be an iterator.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">trainer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">max_epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">epoch_length</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If data is a finite data iterator with unknown length (for user), argument <code class="docutils literal notranslate"><span class="pre">epoch_length</span></code> can be omitted and it
 will be automatically determined when data iterator is exhausted.</p>
 </div>
-<p><strong>Mostly any complexity training logic</strong> can be coded as <code class="docutils literal notranslate"><span class="pre">train_step</span></code> method and a trainer constructed using this method.
+<p><strong>Training logic of any complexity</strong> can be coded with <code class="docutils literal notranslate"><span class="pre">train_step</span></code> method and a trainer can be constructed using this method.
 Argument <code class="docutils literal notranslate"><span class="pre">batch</span></code> in <code class="docutils literal notranslate"><span class="pre">train_step</span></code> function is user-defined and can contain any data required for a single iteration.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model_1</span> <span class="o">=</span> <span class="o">...</span>
 <span class="n">model_2</span> <span class="o">=</span> <span class="o">...</span>
@@ -385,7 +386,7 @@ Argument <code class="docutils literal notranslate"><span class="pre">batch</spa
 </div>
 <div class="section" id="events-and-handlers">
 <h2>Events and Handlers<a class="headerlink" href="#events-and-handlers" title="Permalink to this headline">¶</a></h2>
-<p>To improve the <a class="reference internal" href="engine.html#ignite.engine.engine.Engine" title="ignite.engine.engine.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a>’s flexibility, an event system is introduced that facilitates interaction on each step of
+<p>To improve the <a class="reference internal" href="engine.html#ignite.engine.engine.Engine" title="ignite.engine.engine.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a>’s flexibility, an event system is introduced which facilitates interaction on each step of
 the run:</p>
 <ul class="simple">
 <li><p><em>engine is started/completed</em></p></li>
@@ -393,8 +394,8 @@ the run:</p>
 <li><p><em>batch iteration is started/completed</em></p></li>
 </ul>
 <p>Complete list of events can be found at <a class="reference internal" href="engine.html#ignite.engine.events.Events" title="ignite.engine.events.Events"><code class="xref py py-class docutils literal notranslate"><span class="pre">Events</span></code></a>.</p>
-<p>Thus, user can execute a custom code as an event handler. Handlers can be any function: e.g. lambda, simple function,
-class method etc. The first argument can be optionally <cite>engine</cite>, but not necessary.</p>
+<p>Thus, a user can execute a custom code as an event handler. Handlers can be any function: e.g. lambda, simple function,
+class method etc. The first argument can be optionally <cite>engine</cite>, but not necessarily.</p>
 <p>Let us consider in more detail what happens when <a class="reference internal" href="engine.html#ignite.engine.engine.Engine.run" title="ignite.engine.engine.Engine.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run()</span></code></a> is called:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fire_event</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">STARTED</span><span class="p">)</span>
 <span class="k">while</span> <span class="n">epoch</span> <span class="o">&lt;</span> <span class="n">max_epochs</span><span class="p">:</span>
@@ -410,9 +411,9 @@ class method etc. The first argument can be optionally <cite>engine</cite>, but 
 <span class="n">fire_event</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>At first <em>“engine is started”</em> event is fired and all its event handlers are executed (we will see in the next paragraph
+<p>At first, <em>“engine is started”</em> event is fired and all its event handlers are executed (we will see in the next paragraph
 how to add event handlers). Next, <cite>while</cite> loop is started and <em>“epoch is started”</em> event occurs, etc. Every time
-an event is “fired”, attached handlers are executed.</p>
+an event is fired, attached handlers are executed.</p>
 <p>Attaching an event handler is simple using method <a class="reference internal" href="engine.html#ignite.engine.engine.Engine.add_event_handler" title="ignite.engine.engine.Engine.add_event_handler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_event_handler()</span></code></a> or
 <a class="reference internal" href="engine.html#ignite.engine.engine.Engine.on" title="ignite.engine.engine.Engine.on"><code class="xref py py-meth docutils literal notranslate"><span class="pre">on()</span></code></a> decorator:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">trainer</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span><span class="n">update_model</span><span class="p">)</span>
@@ -431,7 +432,7 @@ an event is “fired”, attached handlers are executed.</p>
 <span class="n">mydata</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
 
 <span class="k">def</span> <span class="nf">on_training_ended</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Training is ended. mydata=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Training is ended. mydata=</span><span class="si">{</span><span class="n">data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="n">trainer</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">,</span> <span class="n">on_training_ended</span><span class="p">,</span> <span class="n">mydata</span><span class="p">)</span>
 </pre></div>
@@ -445,8 +446,7 @@ reference returned by <a class="reference internal" href="engine.html#ignite.eng
 <span class="n">evaluator</span> <span class="o">=</span> <span class="n">create_supervised_evaluator</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;acc&quot;</span><span class="p">:</span> <span class="n">Accuracy</span><span class="p">()})</span>
 
 <span class="k">def</span> <span class="nf">log_metrics</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Epoch: </span><span class="si">{}</span><span class="s2"> - </span><span class="si">{}</span><span class="s2"> accuracy: </span><span class="si">{:.2f}</span><span class="s2">&quot;</span>
-           <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;acc&quot;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch: </span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2"> accuracy: </span><span class="si">{</span><span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;acc&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_COMPLETED</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">trainer</span><span class="p">):</span>
@@ -471,8 +471,7 @@ event filtering function:</p>
 
 <span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">ITERATION_COMPLETED</span><span class="p">(</span><span class="n">every</span><span class="o">=</span><span class="mi">50</span><span class="p">))</span>
 <span class="k">def</span> <span class="nf">log_training_loss_every_50_iterations</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> / </span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2"> - loss: </span><span class="si">{:.2f}</span><span class="s2">&quot;</span>
-          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span> <span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">iteration</span><span class="p">,</span> <span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">output</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">max_epochs</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">iteration</span><span class="si">}</span><span class="s2"> - loss: </span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">output</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_STARTED</span><span class="p">(</span><span class="n">once</span><span class="o">=</span><span class="mi">25</span><span class="p">))</span>
 <span class="k">def</span> <span class="nf">do_something_once_on_25_epoch</span><span class="p">():</span>
@@ -490,9 +489,13 @@ event filtering function:</p>
 <span class="n">trainer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">train_loader</span><span class="p">,</span> <span class="n">max_epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The user can also define custom events. Events defined by user should inherit from <code class="xref py py-class docutils literal notranslate"><span class="pre">EventEnum</span></code>
+<div class="section" id="custom-events">
+<h3>Custom events<a class="headerlink" href="#custom-events" title="Permalink to this headline">¶</a></h3>
+<p>The user can also define custom events. Events defined by user should inherit from <a class="reference internal" href="engine.html#ignite.engine.events.EventEnum" title="ignite.engine.events.EventEnum"><code class="xref py py-class docutils literal notranslate"><span class="pre">EventEnum</span></code></a>
 and be registered with <a class="reference internal" href="engine.html#ignite.engine.engine.Engine.register_events" title="ignite.engine.engine.Engine.register_events"><code class="xref py py-meth docutils literal notranslate"><span class="pre">register_events()</span></code></a> in an <cite>engine</cite>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">CustomEvents</span><span class="p">(</span><span class="n">EventEnum</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ignite.engine</span> <span class="kn">import</span> <span class="n">EventEnum</span>
+
+<span class="k">class</span> <span class="nc">CustomEvents</span><span class="p">(</span><span class="n">EventEnum</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Custom events defined by user</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -516,6 +519,25 @@ and be registered with <a class="reference internal" href="engine.html#ignite.en
 <p class="admonition-title">Note</p>
 <p>See the source code of <code class="xref py py-class docutils literal notranslate"><span class="pre">create_supervised_tbptt_trainer</span></code> for an example of usage of
 custom events.</p>
+</div>
+<p>If you want to use filtering with custom events (e.g. <code class="docutils literal notranslate"><span class="pre">CustomEvents.CUSTOM_STARTED(every=5)</span></code>), you need to do 3 more things:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">engine.state</span></code> should have corresponding attributes for the events, e.g. <code class="docutils literal notranslate"><span class="pre">engine.state.custom_started</span></code></p></li>
+<li><p>you need to pass a dict <cite>event_to_attr</cite> to <a class="reference internal" href="engine.html#ignite.engine.engine.Engine.register_events" title="ignite.engine.engine.Engine.register_events"><code class="xref py py-meth docutils literal notranslate"><span class="pre">register_events()</span></code></a>, which maps between events and state attributes, e.g.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">event_to_attr</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">CustomEvents</span><span class="o">.</span><span class="n">CUSTOM_STARTED</span><span class="p">:</span> <span class="s2">&quot;custom_started&quot;</span><span class="p">,</span>
+    <span class="n">CustomEvents</span><span class="o">.</span><span class="n">CUSTOM_COMPLETED</span><span class="p">:</span> <span class="s2">&quot;custom_completed&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>you should increase the counter for the event whenever you fire the event, e.g. <code class="docutils literal notranslate"><span class="pre">engine.state.custom_started</span> <span class="pre">+=</span> <span class="pre">1</span></code></p></li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This solution for filtering is a temporary workaround and may change in the future.</p>
+</div>
 </div>
 <div class="section" id="handlers">
 <h3>Handlers<a class="headerlink" href="#handlers" title="Permalink to this headline">¶</a></h3>
@@ -582,7 +604,7 @@ every iteration.</p>
     <span class="n">iteration</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">iteration</span>
     <span class="n">epoch</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span>
     <span class="n">loss</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">output</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Epoch: </span><span class="si">{}</span><span class="s2">, Iteration: </span><span class="si">{}</span><span class="s2">, Loss: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">iteration</span><span class="p">,</span> <span class="n">loss</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch: </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">, Iteration: </span><span class="si">{</span><span class="n">iteration</span><span class="si">}</span><span class="s2">, Loss: </span><span class="si">{</span><span class="n">loss</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="n">trainer</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">ITERATION_COMPLETED</span><span class="p">,</span> <span class="n">on_iteration_completed</span><span class="p">)</span>
 </pre></div>
@@ -606,7 +628,7 @@ every iteration.</p>
 <span class="k">def</span> <span class="nf">print_loss</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
     <span class="n">epoch</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span>
     <span class="n">loss</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;Epoch </span><span class="si">{epoch}</span><span class="s1">: train_loss = </span><span class="si">{loss}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="n">epoch</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">))</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s1">: train_loss = </span><span class="si">{</span><span class="n">loss</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
 <span class="n">accuracy</span> <span class="o">=</span> <span class="n">Accuracy</span><span class="p">(</span><span class="n">output_transform</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
 <span class="n">accuracy</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">trainer</span><span class="p">,</span> <span class="s1">&#39;acc&#39;</span><span class="p">)</span>
@@ -632,7 +654,7 @@ batch, this is how the user can use <cite>output_transform</cite> to get y_pred 
 <span class="k">def</span> <span class="nf">print_loss</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
     <span class="n">epoch</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span>
     <span class="n">loss</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span>
-    <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;Epoch </span><span class="si">{epoch}</span><span class="s1">: train_loss = </span><span class="si">{loss}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="n">epoch</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">))</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s1">: train_loss = </span><span class="si">{</span><span class="n">loss</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
 <span class="n">accuracy</span> <span class="o">=</span> <span class="n">Accuracy</span><span class="p">(</span><span class="n">output_transform</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;y_pred&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]])</span>
 <span class="n">accuracy</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">trainer</span><span class="p">,</span> <span class="s1">&#39;acc&#39;</span><span class="p">)</span>
@@ -730,6 +752,7 @@ metrics are supported : 1) online and 2) storing the entire output history.</p>
 <li><a class="reference internal" href="#">Concepts</a><ul>
 <li><a class="reference internal" href="#engine">Engine</a></li>
 <li><a class="reference internal" href="#events-and-handlers">Events and Handlers</a><ul>
+<li><a class="reference internal" href="#custom-events">Custom events</a></li>
 <li><a class="reference internal" href="#handlers">Handlers</a></li>
 <li><a class="reference internal" href="#timeline-and-events">Timeline and events</a></li>
 </ul>

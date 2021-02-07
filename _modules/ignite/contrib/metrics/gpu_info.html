@@ -132,7 +132,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -196,7 +196,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -210,7 +210,8 @@
             <dd><a href="../../../../v0.3.0/index.html">v0.3.0</a></dd>
             <dd><a href="../../../../v0.4.0.post1/index.html">v0.4.0.post1</a></dd>
             <dd><a href="../../../../v0.4.1/index.html">v0.4.1</a></dd>
-            <dd><a href="../../../../v0.4.2/_modules/ignite/contrib/metrics/gpu_info.html">v0.4.2</a></dd>
+            <dd><a href="../../../../v0.4.2/index.html">v0.4.2</a></dd>
+            <dd><a href="../../../../v0.4.3/_modules/ignite/contrib/metrics/gpu_info.html">v0.4.3</a></dd>
             <dd><a href="../../../../v0.4rc.0.post1/index.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -287,10 +288,11 @@
   <h1>Source code for ignite.contrib.metrics.gpu_info</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 
-<span class="kn">from</span> <span class="nn">ignite.engine</span> <span class="kn">import</span> <span class="n">Events</span>
+<span class="kn">from</span> <span class="nn">ignite.engine</span> <span class="kn">import</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">EventEnum</span><span class="p">,</span> <span class="n">Events</span>
 <span class="kn">from</span> <span class="nn">ignite.metrics</span> <span class="kn">import</span> <span class="n">Metric</span>
 
 
@@ -320,7 +322,7 @@
 <span class="sd">                             event_name=Events.ITERATION_COMPLETED)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">pynvml</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -338,51 +340,51 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">nvsmi</span> <span class="o">=</span> <span class="n">nvidia_smi</span><span class="o">.</span><span class="n">getInstance</span><span class="p">()</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">GpuInfo</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
-<div class="viewcode-block" id="GpuInfo.reset"><a class="viewcode-back" href="../../../../contrib/metrics.html#ignite.contrib.metrics.GpuInfo.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GpuInfo.reset"><a class="viewcode-back" href="../../../../contrib/metrics.html#ignite.contrib.metrics.GpuInfo.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="GpuInfo.update"><a class="viewcode-back" href="../../../../contrib/metrics.html#ignite.contrib.metrics.GpuInfo.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+<div class="viewcode-block" id="GpuInfo.update"><a class="viewcode-back" href="../../../../contrib/metrics.html#ignite.contrib.metrics.GpuInfo.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="GpuInfo.compute"><a class="viewcode-back" href="../../../../contrib/metrics.html#ignite.contrib.metrics.GpuInfo.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvsmi</span><span class="o">.</span><span class="n">DeviceQuery</span><span class="p">(</span><span class="s2">&quot;memory.used, memory.total, utilization.gpu&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="GpuInfo.compute"><a class="viewcode-back" href="../../../../contrib/metrics.html#ignite.contrib.metrics.GpuInfo.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvsmi</span><span class="o">.</span><span class="n">DeviceQuery</span><span class="p">(</span>
+            <span class="s2">&quot;memory.used, memory.total, utilization.gpu&quot;</span>
+        <span class="p">)</span>  <span class="c1"># type: Dict[str, List[Dict[str, Any]]]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;gpu&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">):</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No GPU information available&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">[]</span>
         <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;gpu&quot;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="GpuInfo.completed"><a class="viewcode-back" href="../../../../contrib/metrics.html#ignite.contrib.metrics.GpuInfo.completed">[docs]</a>    <span class="k">def</span> <span class="nf">completed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="GpuInfo.completed"><a class="viewcode-back" href="../../../../contrib/metrics.html#ignite.contrib.metrics.GpuInfo.completed">[docs]</a>    <span class="k">def</span> <span class="nf">completed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No GPU information available&quot;</span><span class="p">)</span>
             <span class="k">return</span>
 
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">data_by_rank</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-            <span class="n">mem_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2"> mem(%)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">mem_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> mem(%)&quot;</span>
 
             <span class="k">if</span> <span class="s2">&quot;fb_memory_usage&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data_by_rank</span><span class="p">:</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No GPU memory usage information available in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data_by_rank</span><span class="p">))</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No GPU memory usage information available in </span><span class="si">{</span><span class="n">data_by_rank</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">continue</span>
             <span class="n">mem_report</span> <span class="o">=</span> <span class="n">data_by_rank</span><span class="p">[</span><span class="s2">&quot;fb_memory_usage&quot;</span><span class="p">]</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;used&quot;</span> <span class="ow">in</span> <span class="n">mem_report</span> <span class="ow">and</span> <span class="s2">&quot;total&quot;</span> <span class="ow">in</span> <span class="n">mem_report</span><span class="p">):</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                     <span class="s2">&quot;GPU memory usage information does not provide used/total &quot;</span>
-                    <span class="s2">&quot;memory consumption information in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mem_report</span><span class="p">)</span>
+                    <span class="sa">f</span><span class="s2">&quot;memory consumption information in </span><span class="si">{</span><span class="n">mem_report</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
                 <span class="k">continue</span>
 
             <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">mem_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mem_report</span><span class="p">[</span><span class="s2">&quot;used&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="o">/</span> <span class="n">mem_report</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">])</span>
 
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">data_by_rank</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-            <span class="n">util_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2"> util(%)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">util_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> util(%)&quot;</span>
             <span class="k">if</span> <span class="s2">&quot;utilization&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data_by_rank</span><span class="p">:</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No GPU utilization information available in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data_by_rank</span><span class="p">))</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No GPU utilization information available in </span><span class="si">{</span><span class="n">data_by_rank</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">continue</span>
             <span class="n">util_report</span> <span class="o">=</span> <span class="n">data_by_rank</span><span class="p">[</span><span class="s2">&quot;utilization&quot;</span><span class="p">]</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;gpu_util&quot;</span> <span class="ow">in</span> <span class="n">util_report</span><span class="p">):</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="s2">&quot;GPU utilization information does not provide &#39;gpu_util&#39; information in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">util_report</span><span class="p">)</span>
-                <span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GPU utilization information does not provide &#39;gpu_util&#39; information in </span><span class="si">{</span><span class="n">util_report</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">continue</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">util_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">util_report</span><span class="p">[</span><span class="s2">&quot;gpu_util&quot;</span><span class="p">])</span>
@@ -390,7 +392,10 @@
                 <span class="c1"># Do not set GPU utilization information</span>
                 <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="GpuInfo.attach"><a class="viewcode-back" href="../../../../contrib/metrics.html#ignite.contrib.metrics.GpuInfo.attach">[docs]</a>    <span class="k">def</span> <span class="nf">attach</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;gpu&quot;</span><span class="p">,</span> <span class="n">event_name</span><span class="o">=</span><span class="n">Events</span><span class="o">.</span><span class="n">ITERATION_COMPLETED</span><span class="p">):</span>
+    <span class="c1"># TODO: see issue https://github.com/pytorch/ignite/issues/1405</span>
+<div class="viewcode-block" id="GpuInfo.attach"><a class="viewcode-back" href="../../../../contrib/metrics.html#ignite.contrib.metrics.GpuInfo.attach">[docs]</a>    <span class="k">def</span> <span class="nf">attach</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;gpu&quot;</span><span class="p">,</span> <span class="n">event_name</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">EventEnum</span><span class="p">]</span> <span class="o">=</span> <span class="n">Events</span><span class="o">.</span><span class="n">ITERATION_COMPLETED</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">engine</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="n">event_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">completed</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div></div>
 </pre></div>
 

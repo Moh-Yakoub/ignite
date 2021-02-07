@@ -134,7 +134,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -198,7 +198,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -213,6 +213,7 @@
             <dd><a href="v0.4.0.post1/quickstart.html">v0.4.0.post1</a></dd>
             <dd><a href="v0.4.1/quickstart.html">v0.4.1</a></dd>
             <dd><a href="v0.4.2/quickstart.html">v0.4.2</a></dd>
+            <dd><a href="v0.4.3/quickstart.html">v0.4.3</a></dd>
             <dd><a href="v0.4rc.0.post1/quickstart.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -290,8 +291,8 @@
               
   <div class="section" id="quick-start">
 <h1>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
-<p>Welcome to Ignite quick start guide that just gives essentials of getting a project up and running.</p>
-<p>In several lines you can get your model training and validating:</p>
+<p>Welcome to <strong>PyTorch-Ignite</strong> quick start guide that just covers the essentials of getting a project up and walking through the code.</p>
+<p>In several lines of this given code, you can get your model trained and validated as shown below:</p>
 <div class="section" id="code">
 <h2>Code<a class="headerlink" href="#code" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ignite.engine</span> <span class="kn">import</span> <span class="n">Events</span><span class="p">,</span> <span class="n">create_supervised_trainer</span><span class="p">,</span> <span class="n">create_supervised_evaluator</span>
@@ -312,30 +313,28 @@
 
 <span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">ITERATION_COMPLETED</span><span class="p">(</span><span class="n">every</span><span class="o">=</span><span class="n">log_interval</span><span class="p">))</span>
 <span class="k">def</span> <span class="nf">log_training_loss</span><span class="p">(</span><span class="n">trainer</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Epoch[</span><span class="si">{}</span><span class="s2">] Loss: </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">output</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch[</span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">] Loss: </span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">output</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_COMPLETED</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">log_training_results</span><span class="p">(</span><span class="n">trainer</span><span class="p">):</span>
     <span class="n">evaluator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">train_loader</span><span class="p">)</span>
     <span class="n">metrics</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">metrics</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Training Results - Epoch: </span><span class="si">{}</span><span class="s2">  Avg accuracy: </span><span class="si">{:.2f}</span><span class="s2"> Avg loss: </span><span class="si">{:.2f}</span><span class="s2">&quot;</span>
-          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;accuracy&quot;</span><span class="p">],</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;nll&quot;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Training Results - Epoch: </span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">  Avg accuracy: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;accuracy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Avg loss: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;nll&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_COMPLETED</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">log_validation_results</span><span class="p">(</span><span class="n">trainer</span><span class="p">):</span>
     <span class="n">evaluator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">val_loader</span><span class="p">)</span>
     <span class="n">metrics</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">metrics</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Validation Results - Epoch: </span><span class="si">{}</span><span class="s2">  Avg accuracy: </span><span class="si">{:.2f}</span><span class="s2"> Avg loss: </span><span class="si">{:.2f}</span><span class="s2">&quot;</span>
-          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;accuracy&quot;</span><span class="p">],</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;nll&quot;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation Results - Epoch: </span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">  Avg accuracy: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;accuracy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Avg loss: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;nll&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="n">trainer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">train_loader</span><span class="p">,</span> <span class="n">max_epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Complete code can be found in the file <a class="reference external" href="https://github.com/pytorch/ignite/blob/master/examples/mnist/mnist.py">examples/mnist/mnist.py</a>.</p>
+<p><strong>Note</strong>: Complete code can be found in the file <a class="reference external" href="https://github.com/pytorch/ignite/blob/master/examples/mnist/mnist.py">examples/mnist/mnist.py</a>.</p>
 </div>
 <div class="section" id="explanation">
 <h2>Explanation<a class="headerlink" href="#explanation" title="Permalink to this headline">¶</a></h2>
-<p>Now let’s break up the code and review it in details. In the first 4 lines we define our model, training and validation
+<p>Now let’s break up the code and review it in details. In the first 4 lines, we define our model, training and validation
 datasets (as <a class="reference external" href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader">torch.utils.data.DataLoader</a>), optimizer and loss function:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">Net</span><span class="p">()</span>
 <span class="n">train_loader</span><span class="p">,</span> <span class="n">val_loader</span> <span class="o">=</span> <span class="n">get_data_loaders</span><span class="p">(</span><span class="n">train_batch_size</span><span class="p">,</span> <span class="n">val_batch_size</span><span class="p">)</span>
@@ -343,7 +342,7 @@ datasets (as <a class="reference external" href="https://pytorch.org/docs/stable
 <span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">NLLLoss</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Next we define trainer and evaluator engines. In the above example we are using helper methods
+<p>Next we define trainer and evaluator engines. In this example, we are using helper methods as
 <a class="reference internal" href="engine.html#ignite.engine.create_supervised_trainer" title="ignite.engine.create_supervised_trainer"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_supervised_trainer()</span></code></a> and <a class="reference internal" href="engine.html#ignite.engine.create_supervised_evaluator" title="ignite.engine.create_supervised_evaluator"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_supervised_evaluator()</span></code></a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">trainer</span> <span class="o">=</span> <span class="n">create_supervised_trainer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">criterion</span><span class="p">)</span>
 
@@ -380,7 +379,7 @@ custom training/validation step logic:</p>
 <span class="n">evaluator</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span><span class="n">validation_step</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Note that the helper function <a class="reference internal" href="engine.html#ignite.engine.create_supervised_evaluator" title="ignite.engine.create_supervised_evaluator"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_supervised_evaluator()</span></code></a> to create an evaluator accepts an
+<p>Note that the helper function <a class="reference internal" href="engine.html#ignite.engine.create_supervised_evaluator" title="ignite.engine.create_supervised_evaluator"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_supervised_evaluator()</span></code></a> is to create an evaluator which accepts an
 argument <code class="docutils literal notranslate"><span class="pre">metrics</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">metrics</span><span class="o">=</span><span class="p">{</span>
     <span class="s1">&#39;accuracy&#39;</span><span class="p">:</span> <span class="n">Accuracy</span><span class="p">(),</span>
@@ -388,39 +387,37 @@ argument <code class="docutils literal notranslate"><span class="pre">metrics</s
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>where we define two metrics: <em>accuracy</em> and <em>loss</em> to compute on validation dataset. More information on
+<p>Here we define two metrics: <em>accuracy</em> and <em>loss</em> to compute on validation dataset. More information on
 metrics can be found at <a class="reference internal" href="metrics.html"><span class="doc">ignite.metrics</span></a>.</p>
 <p>The most interesting part of the code snippet is adding event handlers. <a class="reference internal" href="engine.html#ignite.engine.engine.Engine" title="ignite.engine.engine.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a> allows to add handlers on
-various events that triggered during the run. When an event is triggered, attached handlers (functions) are executed. Thus, for
-logging purposes we added a function to be executed at the end of every <code class="docutils literal notranslate"><span class="pre">log_interval</span></code>-th iteration:</p>
+various events that triggers during the run. When an event is triggered, attached handlers (functions) are executed. Thus, for
+logging purposes we add a function to be executed at the end of every <code class="docutils literal notranslate"><span class="pre">log_interval</span></code>-th iteration:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">ITERATION_COMPLETED</span><span class="p">(</span><span class="n">every</span><span class="o">=</span><span class="n">log_interval</span><span class="p">))</span>
 <span class="k">def</span> <span class="nf">log_training_loss</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Epoch[</span><span class="si">{}</span><span class="s2">] Loss: </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">output</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch[</span><span class="si">{</span><span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">] Loss: </span><span class="si">{</span><span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">output</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>or equivalently without the decorator</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">log_training_loss</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Epoch[</span><span class="si">{}</span><span class="s2">] Loss: </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">output</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch[</span><span class="si">{</span><span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">] Loss: </span><span class="si">{</span><span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">output</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="n">trainer</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">ITERATION_COMPLETED</span><span class="p">,</span> <span class="n">log_training_loss</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>When an epoch ends we want compute training and validation metrics <a class="footnote-reference brackets" href="#f1" id="id1">1</a>. For that purpose we can run previously defined
+<p>When an epoch ends, we want to compute training and validation metrics <a class="footnote-reference brackets" href="#f1" id="id1">1</a>. For that purpose, we can run previously defined
 <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> on <code class="docutils literal notranslate"><span class="pre">train_loader</span></code> and <code class="docutils literal notranslate"><span class="pre">val_loader</span></code>. Therefore we attach two additional handlers to the trainer on epoch
 complete event:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_COMPLETED</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">log_training_results</span><span class="p">(</span><span class="n">trainer</span><span class="p">):</span>
     <span class="n">evaluator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">train_loader</span><span class="p">)</span>
     <span class="n">metrics</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">metrics</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Training Results - Epoch[</span><span class="si">{}</span><span class="s2">] Avg accuracy: </span><span class="si">{:.2f}</span><span class="s2"> Avg loss: </span><span class="si">{:.2f}</span><span class="s2">&quot;</span>
-          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;accuracy&#39;</span><span class="p">],</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;nll&#39;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Training Results - Epoch[</span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">] Avg accuracy: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;accuracy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Avg loss: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;nll&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_COMPLETED</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">log_validation_results</span><span class="p">(</span><span class="n">trainer</span><span class="p">):</span>
     <span class="n">evaluator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">val_loader</span><span class="p">)</span>
     <span class="n">metrics</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">metrics</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Validation Results - Epoch[</span><span class="si">{}</span><span class="s2">] Avg accuracy: </span><span class="si">{:.2f}</span><span class="s2"> Avg loss: </span><span class="si">{:.2f}</span><span class="s2">&quot;</span>
-          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;accuracy&#39;</span><span class="p">],</span> <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;nll&#39;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation Results - Epoch[</span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">] Avg accuracy: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;accuracy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Avg loss: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;nll&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -439,10 +436,10 @@ also accepts optional <cite>args</cite>, <cite>kwargs</cite> to be passed to the
 <p class="rubric">Footnotes</p>
 <dl class="footnote brackets">
 <dt class="label" id="f1"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>In this example we follow a pattern that requires a second pass through the training set. This
+<dd><p>In this example, we follow a pattern that requires a second pass through the training set. This
 could be expensive on large datasets (even taking a subset). Another more common pattern is to accumulate
-measures online over an epoch in the training loop. In this case metrics are aggregated on a moving model,
-and thus, we do not want to encourage this pattern. However, if user still would like to implement the
+measures online over an epoch in the training loop. In this case, metrics are aggregated on a moving model,
+and thus, we do not want to encourage this pattern. However, if a user still likes to implement the
 last pattern, it can be easily done by attaching metrics to the trainer as following:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">custom_output_transform</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">loss</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">{</span>

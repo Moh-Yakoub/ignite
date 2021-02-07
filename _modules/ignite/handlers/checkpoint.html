@@ -132,7 +132,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -196,7 +196,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -210,7 +210,8 @@
             <dd><a href="../../../v0.3.0/index.html">v0.3.0</a></dd>
             <dd><a href="../../../v0.4.0.post1/index.html">v0.4.0.post1</a></dd>
             <dd><a href="../../../v0.4.1/index.html">v0.4.1</a></dd>
-            <dd><a href="../../../v0.4.2/_modules/ignite/handlers/checkpoint.html">v0.4.2</a></dd>
+            <dd><a href="../../../v0.4.2/index.html">v0.4.2</a></dd>
+            <dd><a href="../../../v0.4.3/_modules/ignite/handlers/checkpoint.html">v0.4.3</a></dd>
             <dd><a href="../../../v0.4rc.0.post1/index.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -293,8 +294,9 @@
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">namedtuple</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">_TemporaryFileWrapper</span>  <span class="c1"># type: ignore[attr-defined]</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">NamedTuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
@@ -354,7 +356,7 @@
 
 <div class="viewcode-block" id="Checkpoint"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.Checkpoint">[docs]</a><span class="k">class</span> <span class="nc">Checkpoint</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Checkpoint handler can be used to periodically save and load objects which have attribute</span>
-<span class="sd">    ``state_dict`/`load_state_dict``. This class can use specific save handlers to store on the disk or a cloud</span>
+<span class="sd">    ``state_dict/load_state_dict``. This class can use specific save handlers to store on the disk or a cloud</span>
 <span class="sd">    storage, etc. The Checkpoint handler (if used with :class:`~ignite.handlers.DiskSaver`) also handles automatically</span>
 <span class="sd">    moving data on TPU to CPU before writing the checkpoint.</span>
 
@@ -387,6 +389,8 @@
 <span class="sd">            details.</span>
 <span class="sd">        include_self (bool): Whether to include the `state_dict` of this object in the checkpoint. If `True`, then</span>
 <span class="sd">            there must not be another object in ``to_save`` with key ``checkpointer``.</span>
+<span class="sd">        greater_or_equal (bool): if `True`, the latest equally scored model is stored. Otherwise, the first model.</span>
+<span class="sd">            Default, `False`.</span>
 
 <span class="sd">    .. _DistributedDataParallel: https://pytorch.org/docs/stable/generated/</span>
 <span class="sd">        torch.nn.parallel.DistributedDataParallel.html</span>
@@ -436,8 +440,8 @@
 <span class="sd">        ``30000-checkpoint-94.pt``</span>
 
 <span class="sd">        **Warning:** Please, keep in mind that if filename collide with already used one to saved a checkpoint,</span>
-<span class="sd">        new checkpoint will not be stored. This means that filename like ``checkpoint.pt`` will be saved only once</span>
-<span class="sd">        and will not be overwritten by newer checkpoints.</span>
+<span class="sd">        new checkpoint will replace the older one. This means that filename like ``checkpoint.pt`` will be saved</span>
+<span class="sd">        every call and will always be overwritten by newer checkpoints.</span>
 
 <span class="sd">    Note:</span>
 <span class="sd">        To get the last stored filename, handler exposes attribute ``last_checkpoint``:</span>
@@ -485,10 +489,24 @@
 <span class="sd">            lr_scheduler = ...</span>
 
 <span class="sd">            to_save = {&#39;model&#39;: model, &#39;optimizer&#39;: optimizer, &#39;lr_scheduler&#39;: lr_scheduler, &#39;trainer&#39;: trainer}</span>
-<span class="sd">            handler = Checkpoint(to_save, DiskSaver(&#39;/tmp/models&#39;, create_dir=True), n_saved=2)</span>
-<span class="sd">            trainer.add_event_handler(Events.ITERATION_COMPLETED(every=1000), handler)</span>
+
+<span class="sd">            if (checkpoint_iters):</span>
+<span class="sd">                # A: Output is &quot;checkpoint_&lt;iteration&gt;.pt&quot;</span>
+<span class="sd">                handler = Checkpoint(</span>
+<span class="sd">                    to_save, DiskSaver(&#39;/tmp/models&#39;, create_dir=True), n_saved=2</span>
+<span class="sd">                )</span>
+<span class="sd">                trainer.add_event_handler(Events.ITERATION_COMPLETED(every=1000), handler)</span>
+<span class="sd">            else:</span>
+<span class="sd">                # B:Output is &quot;checkpoint_&lt;epoch&gt;.pt&quot;</span>
+<span class="sd">                gst = lambda *_: trainer.state.epoch</span>
+<span class="sd">                handler = Checkpoint(</span>
+<span class="sd">                    to_save, DiskSaver(&#39;/tmp/models&#39;, create_dir=True), n_saved=2, global_step_transform=gst</span>
+<span class="sd">                )</span>
+<span class="sd">                trainer.add_event_handler(Events.EPOCH_COMPLETED, handler)</span>
+
 <span class="sd">            trainer.run(data_loader, max_epochs=6)</span>
-<span class="sd">            &gt; [&quot;checkpoint_7000.pt&quot;, &quot;checkpoint_8000.pt&quot;, ]</span>
+<span class="sd">            &gt; A: [&quot;checkpoint_7000.pt&quot;, &quot;checkpoint_8000.pt&quot;, ]</span>
+<span class="sd">            &gt; B: [&quot;checkpoint_5.pt&quot;, &quot;checkpoint_6.pt&quot;, ]</span>
 
 <span class="sd">        Attach the handler to an evaluator to save best model during the training</span>
 <span class="sd">        according to computed validation metric:</span>
@@ -504,22 +522,28 @@
 <span class="sd">            # Run evaluation on epoch completed event</span>
 <span class="sd">            # ...</span>
 
-<span class="sd">            def score_function(engine):</span>
-<span class="sd">                return engine.state.metrics[&#39;accuracy&#39;]</span>
+<span class="sd">            score_function = Checkpoint.get_default_score_fn(&quot;accuracy&quot;)</span>
 
 <span class="sd">            to_save = {&#39;model&#39;: model}</span>
-<span class="sd">            handler = Checkpoint(to_save, DiskSaver(&#39;/tmp/models&#39;, create_dir=True), n_saved=2,</span>
-<span class="sd">                                 filename_prefix=&#39;best&#39;, score_function=score_function, score_name=&quot;val_acc&quot;,</span>
-<span class="sd">                                 global_step_transform=global_step_from_engine(trainer))</span>
+<span class="sd">            handler = Checkpoint(</span>
+<span class="sd">                to_save, DiskSaver(&#39;/tmp/models&#39;, create_dir=True),</span>
+<span class="sd">                n_saved=2, filename_prefix=&#39;best&#39;,</span>
+<span class="sd">                score_function=score_function, score_name=&quot;val_acc&quot;,</span>
+<span class="sd">                global_step_transform=global_step_from_engine(trainer)</span>
+<span class="sd">            )</span>
 
 <span class="sd">            evaluator.add_event_handler(Events.COMPLETED, handler)</span>
 
 <span class="sd">            trainer.run(data_loader, max_epochs=10)</span>
 <span class="sd">            &gt; [&quot;best_model_9_val_acc=0.77.pt&quot;, &quot;best_model_10_val_acc=0.78.pt&quot;, ]</span>
 
+<span class="sd">    .. versionchanged:: 0.4.3</span>
+
+<span class="sd">        - Checkpoint can save model with same filename.</span>
+<span class="sd">        - Added ``greater_or_equal`` argument.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">Item</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;Item&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;priority&quot;</span><span class="p">,</span> <span class="s2">&quot;filename&quot;</span><span class="p">])</span>
+    <span class="n">Item</span> <span class="o">=</span> <span class="n">NamedTuple</span><span class="p">(</span><span class="s2">&quot;Item&quot;</span><span class="p">,</span> <span class="p">[(</span><span class="s2">&quot;priority&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)])</span>
     <span class="n">_state_dict_all_req_keys</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;saved&quot;</span><span class="p">,)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -530,29 +554,26 @@
         <span class="n">score_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">score_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">n_saved</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="n">global_step_transform</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">global_step_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">archived</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">filename_pattern</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">include_self</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="n">greater_or_equal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
-        <span class="k">if</span> <span class="n">to_save</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># for compatibility with ModelCheckpoint</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">to_save</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Argument `to_save` should be a dictionary, but given </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">to_save</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">to_save</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument `to_save` should be a dictionary, but given </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">to_save</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">to_save</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No objects to checkpoint.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_objects</span><span class="p">(</span><span class="n">to_save</span><span class="p">,</span> <span class="s2">&quot;state_dict&quot;</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_check_objects</span><span class="p">(</span><span class="n">to_save</span><span class="p">,</span> <span class="s2">&quot;state_dict&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">include_self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">to_save</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">MutableMapping</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;If `include_self` is True, then `to_save` must be mutable, but given </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">to_save</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">include_self</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">to_save</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">MutableMapping</span><span class="p">):</span>
-                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                        <span class="s2">&quot;If `include_self` is True, then `to_save` must be mutable, but given </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">to_save</span><span class="p">))</span>
-                    <span class="p">)</span>
-
-                <span class="k">if</span> <span class="s2">&quot;checkpointer&quot;</span> <span class="ow">in</span> <span class="n">to_save</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot have key &#39;checkpointer&#39; if `include_self` is True: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">to_save</span><span class="p">))</span>
+            <span class="k">if</span> <span class="s2">&quot;checkpointer&quot;</span> <span class="ow">in</span> <span class="n">to_save</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot have key &#39;checkpointer&#39; if `include_self` is True: </span><span class="si">{</span><span class="n">to_save</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">callable</span><span class="p">(</span><span class="n">save_handler</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">save_handler</span><span class="p">,</span> <span class="n">BaseSaveHandler</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Argument `save_handler` should be callable or inherit from BaseSaveHandler&quot;</span><span class="p">)</span>
@@ -561,9 +582,8 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If `score_name` is provided, then `score_function` &quot;</span> <span class="s2">&quot;should be also provided.&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">global_step_transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">global_step_transform</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s2">&quot;global_step_transform should be a function, got </span><span class="si">{}</span><span class="s2"> instead.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">global_step_transform</span><span class="p">))</span>
-            <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;global_step_transform should be a function, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">global_step_transform</span><span class="p">)</span><span class="si">}</span><span class="s2"> instead.&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">archived</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Argument archived is deprecated and will be removed in 0.5.0&quot;</span><span class="p">)</span>
 
@@ -576,8 +596,36 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ext</span> <span class="o">=</span> <span class="s2">&quot;pt&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">global_step_transform</span> <span class="o">=</span> <span class="n">global_step_transform</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filename_pattern</span> <span class="o">=</span> <span class="n">filename_pattern</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[&quot;Checkpoint.Item&quot;]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">include_self</span> <span class="o">=</span> <span class="n">include_self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">greater_or_equal</span> <span class="o">=</span> <span class="n">greater_or_equal</span>
+
+<div class="viewcode-block" id="Checkpoint.reset"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.Checkpoint.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Method to reset saved checkpoint names.</span>
+
+<span class="sd">        Use this method if the engine will independently run multiple times:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.handlers import Checkpoint</span>
+
+<span class="sd">            trainer = ...</span>
+<span class="sd">            checkpointer = Checkpoint(...)</span>
+
+<span class="sd">            trainer.add_event_handler(Events.COMPLETED, checkpointer)</span>
+<span class="sd">            trainer.add_event_handler(Events.STARTED, checkpointer.reset)</span>
+
+<span class="sd">            # fold 0</span>
+<span class="sd">            trainer.run(data0, max_epochs=max_epochs)</span>
+<span class="sd">            print(&quot;Last checkpoint:&quot;, checkpointer.last_checkpoint)</span>
+
+<span class="sd">            # fold 1</span>
+<span class="sd">            trainer.run(data1, max_epochs=max_epochs)</span>
+<span class="sd">            print(&quot;Last checkpoint:&quot;, checkpointer.last_checkpoint)</span>
+
+<span class="sd">        .. versionadded:: 0.4.3</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span> <span class="o">=</span> <span class="p">[]</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">last_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -585,10 +633,16 @@
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">filename</span>
 
-    <span class="k">def</span> <span class="nf">_check_lt_n_saved</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">or_equal</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_check_lt_n_saved</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">or_equal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_saved</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_saved</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">or_equal</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_compare_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">greater_or_equal</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">new</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">priority</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">new</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">priority</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
@@ -605,11 +659,9 @@
                 <span class="n">global_step</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">get_event_attrib_value</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">ITERATION_COMPLETED</span><span class="p">)</span>
             <span class="n">priority</span> <span class="o">=</span> <span class="n">global_step</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_lt_n_saved</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">priority</span> <span class="o">&lt;</span> <span class="n">priority</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_lt_n_saved</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compare_fn</span><span class="p">(</span><span class="n">priority</span><span class="p">):</span>
 
-            <span class="n">priority_str</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">priority</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">priority</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">priority</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">priority_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">priority</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">priority</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">)</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">priority</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
 
             <span class="n">checkpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_checkpoint</span><span class="p">()</span>
 
@@ -639,22 +691,26 @@
             <span class="p">}</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">filename_pattern</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">filename_dict</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="n">filename</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">):</span>
-                <span class="k">return</span>
-
             <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;basename&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{}{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename_prefix</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename_prefix</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">),</span> <span class="n">name</span><span class="p">),</span>
+                <span class="s2">&quot;basename&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename_prefix</span><span class="si">}{</span><span class="s1">&#39;_&#39;</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename_prefix</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="si">}{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;score_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_name</span><span class="p">,</span>
                 <span class="s2">&quot;priority&quot;</span><span class="p">:</span> <span class="n">priority</span><span class="p">,</span>
             <span class="p">}</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_lt_n_saved</span><span class="p">():</span>
-                <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">it</span><span class="p">:</span> <span class="n">it</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="n">filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">))</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">to_remove</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">to_remove</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_lt_n_saved</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">to_remove</span><span class="p">:</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_handler</span><span class="p">,</span> <span class="n">BaseSaveHandler</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">save_handler</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Checkpoint</span><span class="o">.</span><span class="n">Item</span><span class="p">(</span><span class="n">priority</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">it</span><span class="p">:</span> <span class="n">it</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">include_self</span><span class="p">:</span>
                 <span class="c1"># Now that we&#39;ve updated _saved, we can add our own state_dict.</span>
@@ -665,15 +721,16 @@
             <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">save_handler</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_setup_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_setup_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="n">checkpoint</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_save</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">DataParallel</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">DistributedDataParallel</span><span class="p">)):</span>
-                <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">module</span>
-            <span class="n">checkpoint</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_save</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_save</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">DataParallel</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">DistributedDataParallel</span><span class="p">)):</span>
+                    <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">module</span>
+                <span class="n">checkpoint</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">checkpoint</span>
 
-    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Checkpoint.setup_filename_pattern"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.Checkpoint.setup_filename_pattern">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">setup_filename_pattern</span><span class="p">(</span>
         <span class="n">with_prefix</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">with_score</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">with_score_name</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">with_global_step</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -701,6 +758,8 @@
 
 <span class="sd">                print(filename_pattern)</span>
 <span class="sd">                &gt; &quot;{filename_prefix}_{name}_{global_step}_{score_name}={score}.{ext}&quot;</span>
+
+<span class="sd">        .. versionadded:: 0.4.3</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">filename_pattern</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{name}</span><span class="s2">&quot;</span>
 
@@ -721,16 +780,16 @@
             <span class="n">filename_pattern</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{filename_prefix}</span><span class="s2">_&quot;</span> <span class="o">+</span> <span class="n">filename_pattern</span>
 
         <span class="n">filename_pattern</span> <span class="o">+=</span> <span class="s2">&quot;.</span><span class="si">{ext}</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="n">filename_pattern</span>
+        <span class="k">return</span> <span class="n">filename_pattern</span></div>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_check_objects</span><span class="p">(</span><span class="n">objs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Object </span><span class="si">{}</span><span class="s2"> should have `</span><span class="si">{}</span><span class="s2">` method&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">attr</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Object </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2"> should have `</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2">` method&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Checkpoint.load_objects"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.Checkpoint.load_objects">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">load_objects</span><span class="p">(</span><span class="n">to_load</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">load_objects</span><span class="p">(</span><span class="n">to_load</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Helper method to apply ``load_state_dict`` on the objects from ``to_load`` using states from ``checkpoint``.</span>
 
 <span class="sd">        Exemples:</span>
@@ -772,7 +831,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Checkpoint</span><span class="o">.</span><span class="n">_check_objects</span><span class="p">(</span><span class="n">to_load</span><span class="p">,</span> <span class="s2">&quot;load_state_dict&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Argument checkpoint should be a dictionary, but given </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">)))</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument checkpoint should be a dictionary, but given </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;strict&quot;</span><span class="p">]):</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;kwargs contains keys other than strict and these will be ignored&quot;</span><span class="p">)</span>
@@ -790,7 +849,7 @@
         <span class="c1"># multiple objects to load</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">to_load</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">checkpoint</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Object labeled by &#39;</span><span class="si">{}</span><span class="s2">&#39; from `to_load` is not found in the checkpoint&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Object labeled by &#39;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&#39; from `to_load` is not found in the checkpoint&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">DataParallel</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">DistributedDataParallel</span><span class="p">)):</span>
                 <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">module</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
@@ -798,12 +857,66 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">obj</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="n">k</span><span class="p">])</span></div>
 
-    <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OrderedDict</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="s2">&quot;saved&quot;</span><span class="p">,</span> <span class="p">[(</span><span class="n">p</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">])])</span>
+<div class="viewcode-block" id="Checkpoint.state_dict"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.Checkpoint.state_dict">[docs]</a>    <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OrderedDict[str, List[Tuple[int, str]]]&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Method returns state dict with saved items: list of ``(priority, filename)`` pairs.</span>
+<span class="sd">        Can be used to save internal state of the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="s2">&quot;saved&quot;</span><span class="p">,</span> <span class="p">[(</span><span class="n">p</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">])])</span></div>
 
-    <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Checkpoint.load_state_dict"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.Checkpoint.load_state_dict">[docs]</a>    <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Method replace internal state of the class with provided state dict data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state_dict (Mapping): a dict with &quot;saved&quot; key and list of ``(priority, filename)`` pairs as values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span> <span class="o">=</span> <span class="p">[</span><span class="n">Checkpoint</span><span class="o">.</span><span class="n">Item</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;saved&quot;</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="Checkpoint.get_default_score_fn"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.Checkpoint.get_default_score_fn">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_default_score_fn</span><span class="p">(</span><span class="n">metric_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">score_sign</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Helper method to get default score function based on the metric name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            metric_name (str): metric name to get the value from ``engine.state.metrics``.</span>
+<span class="sd">                Engine is the one to which :class:`~ignite.handlers.checkpoint.Checkpoint` handler is added.</span>
+<span class="sd">            score_sign (float): sign of the score: 1.0 or -1.0. For error-like metrics, e.g. smaller is better,</span>
+<span class="sd">                a negative score sign should be used (objects with larger score are retained). Default, 1.0.</span>
+
+<span class="sd">        Exemples:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.handlers import Checkpoint</span>
+
+<span class="sd">            best_acc_score = Checkpoint.get_default_score_fn(&quot;accuracy&quot;)</span>
+
+<span class="sd">            best_model_handler = Checkpoint(</span>
+<span class="sd">                to_save, save_handler, score_name=&quot;val_accuracy&quot;, score_function=best_acc_score</span>
+<span class="sd">            )</span>
+<span class="sd">            evaluator.add_event_handler(Events.COMPLETED, best_model_handler)</span>
+
+<span class="sd">        Usage with error-like metric:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.handlers import Checkpoint</span>
+
+<span class="sd">            neg_loss_score = Checkpoint.get_default_score_fn(&quot;loss&quot;, -1.0)</span>
+
+<span class="sd">            best_model_handler = Checkpoint(</span>
+<span class="sd">                to_save, save_handler, score_name=&quot;val_neg_loss&quot;, score_function=neg_loss_score</span>
+<span class="sd">            )</span>
+<span class="sd">            evaluator.add_event_handler(Events.COMPLETED, best_model_handler)</span>
+
+<span class="sd">        .. versionadded:: 0.4.3</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">score_sign</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Argument score_sign should be 1 or -1&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">score_sign</span> <span class="o">*</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">wrapper</span></div></div>
 
 
 <div class="viewcode-block" id="DiskSaver"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.DiskSaver">[docs]</a><span class="k">class</span> <span class="nc">DiskSaver</span><span class="p">(</span><span class="n">BaseSaveHandler</span><span class="p">):</span>
@@ -818,11 +931,14 @@
 <span class="sd">        require_empty (bool, optional): If True, will raise exception if there are any files in the</span>
 <span class="sd">            directory ``dirname``.</span>
 <span class="sd">        **kwargs: Accepted keyword arguments for `torch.save` or `xm.save`.</span>
+
+<span class="sd">    .. versionchanged:: 0.4.2</span>
+<span class="sd">        Accept ``kwargs`` for `torch.save` or `xm.save`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">dirname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">atomic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">create_dir</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">require_empty</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-    <span class="p">):</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">dirname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">atomic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">create_dir</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">require_empty</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_atomic</span> <span class="o">=</span> <span class="n">atomic</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_and_setup</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">create_dir</span><span class="p">,</span> <span class="n">require_empty</span><span class="p">)</span>
@@ -830,22 +946,22 @@
 
     <span class="nd">@staticmethod</span>
     <span class="nd">@idist</span><span class="o">.</span><span class="n">one_rank_only</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_check_and_setup</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">create_dir</span><span class="p">,</span> <span class="n">require_empty</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_check_and_setup</span><span class="p">(</span><span class="n">dirname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">create_dir</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">require_empty</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">create_dir</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
         <span class="c1"># Ensure that dirname exists</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Directory path &#39;</span><span class="si">{}</span><span class="s2">&#39; is not found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dirname</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Directory path &#39;</span><span class="si">{</span><span class="n">dirname</span><span class="si">}</span><span class="s2">&#39; is not found&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">require_empty</span><span class="p">:</span>
             <span class="n">matched</span> <span class="o">=</span> <span class="p">[</span><span class="n">fname</span> <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span> <span class="k">if</span> <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.pt&quot;</span><span class="p">)]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matched</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Files </span><span class="si">{}</span><span class="s2"> with extension &#39;.pt&#39; are already present &quot;</span>
-                    <span class="s2">&quot;in the directory </span><span class="si">{}</span><span class="s2">. If you want to use this &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Files </span><span class="si">{</span><span class="n">matched</span><span class="si">}</span><span class="s2"> with extension &#39;.pt&#39; are already present &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;in the directory </span><span class="si">{</span><span class="n">dirname</span><span class="si">}</span><span class="s2">. If you want to use this &quot;</span>
                     <span class="s2">&quot;directory anyway, pass `require_empty=False`.&quot;</span>
-                    <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">matched</span><span class="p">,</span> <span class="n">dirname</span><span class="p">)</span>
+                    <span class="s2">&quot;&quot;</span>
                 <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -857,22 +973,22 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_save_native</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
 
     <span class="nd">@idist</span><span class="o">.</span><span class="n">one_rank_only</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_save_native</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_save_native</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_save_func</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_save_xla</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_save_xla</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">torch_xla.core.xla_model</span> <span class="k">as</span> <span class="nn">xm</span>
 
         <span class="c1"># all tpu procs should enter here as internally performs sync across device</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_save_func</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">xm</span><span class="o">.</span><span class="n">save</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">idist</span><span class="o">.</span><span class="n">get_rank</span><span class="p">())</span>
 
-    <span class="k">def</span> <span class="nf">_save_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_save_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atomic</span><span class="p">:</span>
             <span class="n">func</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">tmp_file</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">tmp_name</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">tmp</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">tmp_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: _TemporaryFileWrapper</span>
             <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">tmp</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dirname</span><span class="p">)</span>
                 <span class="n">tmp_file</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">file</span>
@@ -948,6 +1064,9 @@
 <span class="sd">            there must not be another object in ``to_save`` with key ``checkpointer``.</span>
 <span class="sd">        **kwargs: Accepted keyword arguments for `torch.save` or `xm.save` in `DiskSaver`.</span>
 
+<span class="sd">    .. versionchanged:: 0.4.2</span>
+<span class="sd">        Accept ``kwargs`` for `torch.save` or `xm.save`</span>
+
 <span class="sd">    Examples:</span>
 <span class="sd">        &gt;&gt;&gt; import os</span>
 <span class="sd">        &gt;&gt;&gt; from ignite.engine import Engine, Events</span>
@@ -957,18 +1076,18 @@
 <span class="sd">        &gt;&gt;&gt; handler = ModelCheckpoint(&#39;/tmp/models&#39;, &#39;myprefix&#39;, n_saved=2, create_dir=True)</span>
 <span class="sd">        &gt;&gt;&gt; model = nn.Linear(3, 3)</span>
 <span class="sd">        &gt;&gt;&gt; trainer.add_event_handler(Events.EPOCH_COMPLETED(every=2), handler, {&#39;mymodel&#39;: model})</span>
-<span class="sd">        &gt;&gt;&gt; trainer.run([0], max_epochs=6)</span>
+<span class="sd">        &gt;&gt;&gt; trainer.run([0, 1, 2, 3, 4], max_epochs=6)</span>
 <span class="sd">        &gt;&gt;&gt; os.listdir(&#39;/tmp/models&#39;)</span>
-<span class="sd">        [&#39;myprefix_mymodel_4.pt&#39;, &#39;myprefix_mymodel_6.pt&#39;]</span>
+<span class="sd">        [&#39;myprefix_mymodel_20.pt&#39;, &#39;myprefix_mymodel_30.pt&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; handler.last_checkpoint</span>
-<span class="sd">        [&#39;/tmp/models/myprefix_mymodel_6.pt&#39;]</span>
+<span class="sd">        [&#39;/tmp/models/myprefix_mymodel_30.pt&#39;]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dirname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">filename_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">save_interval</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">save_interval</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">score_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">score_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">n_saved</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
@@ -979,8 +1098,8 @@
         <span class="n">global_step_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">archived</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">include_self</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span>
-    <span class="p">):</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">save_as_state_dict</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -1002,7 +1121,7 @@
         <span class="n">disk_saver</span> <span class="o">=</span> <span class="n">DiskSaver</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">atomic</span><span class="o">=</span><span class="n">atomic</span><span class="p">,</span> <span class="n">create_dir</span><span class="o">=</span><span class="n">create_dir</span><span class="p">,</span> <span class="n">require_empty</span><span class="o">=</span><span class="n">require_empty</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">ModelCheckpoint</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">to_save</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">to_save</span><span class="o">=</span><span class="p">{},</span>
             <span class="n">save_handler</span><span class="o">=</span><span class="n">disk_saver</span><span class="p">,</span>
             <span class="n">filename_prefix</span><span class="o">=</span><span class="n">filename_prefix</span><span class="p">,</span>
             <span class="n">score_function</span><span class="o">=</span><span class="n">score_function</span><span class="p">,</span>
@@ -1017,9 +1136,15 @@
     <span class="k">def</span> <span class="nf">last_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_handler</span><span class="p">,</span> <span class="n">DiskSaver</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unable to save checkpoint, save_handler should be DiskSaver, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_handler</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_handler</span><span class="o">.</span><span class="n">dirname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">to_save</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">to_save</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">to_save</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No objects to checkpoint found.&quot;</span><span class="p">)</span>

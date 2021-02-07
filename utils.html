@@ -134,7 +134,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -198,7 +198,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -213,6 +213,7 @@
             <dd><a href="v0.4.0.post1/utils.html">v0.4.0.post1</a></dd>
             <dd><a href="v0.4.1/utils.html">v0.4.1</a></dd>
             <dd><a href="v0.4.2/utils.html">v0.4.2</a></dd>
+            <dd><a href="v0.4.3/utils.html">v0.4.3</a></dd>
             <dd><a href="v0.4rc.0.post1/utils.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -291,6 +292,32 @@
   <div class="section" id="ignite-utils">
 <h1>ignite.utils<a class="headerlink" href="#ignite-utils" title="Permalink to this headline">¶</a></h1>
 <p>Module with helper methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.utils.convert_tensor" title="ignite.utils.convert_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_tensor</span></code></a></p></td>
+<td><p>Move tensors to relevant device.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.utils.apply_to_tensor" title="ignite.utils.apply_to_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_to_tensor</span></code></a></p></td>
+<td><p>Apply a function on a tensor or mapping, or sequence of tensors.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.utils.apply_to_type" title="ignite.utils.apply_to_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_to_type</span></code></a></p></td>
+<td><p>Apply a function on a object of <cite>input_type</cite> or mapping, or sequence of objects of <cite>input_type</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.utils.to_onehot" title="ignite.utils.to_onehot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_onehot</span></code></a></p></td>
+<td><p>Convert a tensor of indices of any shape <cite>(N, …)</cite> to a tensor of one-hot indicators of shape <a href="#id1"><span class="problematic" id="id2">`</span></a>(N, num_classes, …) and of type uint8.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.utils.setup_logger" title="ignite.utils.setup_logger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_logger</span></code></a></p></td>
+<td><p>Setups logger: name, level, format etc.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.utils.manual_seed" title="ignite.utils.manual_seed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">manual_seed</span></code></a></p></td>
+<td><p>Setup random state from a seed for <cite>torch</cite>, <cite>random</cite> and optionally <cite>numpy</cite> (if can be imported).</p></td>
+</tr>
+</tbody>
+</table>
 <span class="target" id="module-ignite.utils"></span><dl class="py function">
 <dt id="ignite.utils.apply_to_tensor">
 <code class="sig-prename descclassname">ignite.utils.</code><code class="sig-name descname">apply_to_tensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.Tensor<span class="p">, </span>collections.abc.Sequence<span class="p">, </span>collections.abc.Mapping<span class="p">, </span>str<span class="p">, </span>bytes<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>torch.Tensor<span class="p">, </span>collections.abc.Sequence<span class="p">, </span>collections.abc.Mapping<span class="p">, </span>str<span class="p">, </span>bytes<span class="p">]</span><a class="reference internal" href="_modules/ignite/utils.html#apply_to_tensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.utils.apply_to_tensor" title="Permalink to this definition">¶</a></dt>
@@ -318,22 +345,25 @@
 <dd class="field-odd"><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Random state seed</p>
 </dd>
 </dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 0.4.3: </span>Added <code class="docutils literal notranslate"><span class="pre">torch.cuda.manual_seed_all(seed)</span></code>.</p>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt id="ignite.utils.setup_logger">
-<code class="sig-prename descclassname">ignite.utils.</code><code class="sig-name descname">setup_logger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">level</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">20</span></em>, <em class="sig-param"><span class="n">format</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'%(asctime)s %(name)s %(levelname)s: %(message)s'</span></em>, <em class="sig-param"><span class="n">filepath</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">distributed_rank</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; logging.Logger<a class="reference internal" href="_modules/ignite/utils.html#setup_logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.utils.setup_logger" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">ignite.utils.</code><code class="sig-name descname">setup_logger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">level</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">20</span></em>, <em class="sig-param"><span class="n">stream</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>TextIO<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">format</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'%(asctime)s %(name)s %(levelname)s: %(message)s'</span></em>, <em class="sig-param"><span class="n">filepath</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">distributed_rank</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; logging.Logger<a class="reference internal" href="_modules/ignite/utils.html#setup_logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.utils.setup_logger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Setups logger: name, level, format etc.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – new name for the logger. If None, the standard logger is used.</p></li>
-<li><p><strong>level</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – logging level, e.g. CRITICAL, ERROR, WARNING, INFO, DEBUG</p></li>
-<li><p><strong>format</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – logging format. By default, <cite>%(asctime)s %(name)s %(levelname)s: %(message)s</cite></p></li>
+<li><p><strong>level</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – logging level, e.g. CRITICAL, ERROR, WARNING, INFO, DEBUG.</p></li>
+<li><p><strong>stream</strong> (<em>TextIO</em><em>, </em><em>optional</em>) – logging stream. If None, the standard stream is used (sys.stderr).</p></li>
+<li><p><strong>format</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – logging format. By default, <cite>%(asctime)s %(name)s %(levelname)s: %(message)s</cite>.</p></li>
 <li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – Optional logging file path. If not None, logs are written to the file.</p></li>
-<li><p><strong>distributed_rank</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – Optional, rank in distributed configuration to avoid logger setup for workers.</p></li>
-<li><p><strong>None</strong> (<em>If</em>) – </p></li>
-<li><p><strong>is initialized to the rank of process.</strong> (<em>distributed_rank</em>) – </p></li>
+<li><p><strong>distributed_rank</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – Optional, rank in distributed configuration to avoid logger setup for workers.
+If None, distributed_rank is initialized to the rank of process.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -359,6 +389,9 @@
 <span class="c1"># ...</span>
 </pre></div>
 </div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 0.4.3: </span>Added <code class="docutils literal notranslate"><span class="pre">stream</span></code> parameter.</p>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -367,6 +400,9 @@
 <dd><p>Convert a tensor of indices of any shape <cite>(N, …)</cite> to a
 tensor of one-hot indicators of shape <cite>(N, num_classes, …) and of type uint8. Output’s device is equal to the
 input’s device</cite>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 0.4.3: </span>This functions is now torchscriptable.</p>
+</div>
 </dd></dl>
 
 </div>

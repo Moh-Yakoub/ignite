@@ -132,7 +132,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -196,7 +196,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -210,7 +210,8 @@
             <dd><a href="../../../../../v0.3.0/index.html">v0.3.0</a></dd>
             <dd><a href="../../../../../v0.4.0.post1/index.html">v0.4.0.post1</a></dd>
             <dd><a href="../../../../../v0.4.1/index.html">v0.4.1</a></dd>
-            <dd><a href="../../../../../v0.4.2/_modules/ignite/contrib/metrics/regression/median_absolute_error.html">v0.4.2</a></dd>
+            <dd><a href="../../../../../v0.4.2/index.html">v0.4.2</a></dd>
+            <dd><a href="../../../../../v0.4.3/_modules/ignite/contrib/metrics/regression/median_absolute_error.html">v0.4.3</a></dd>
             <dd><a href="../../../../../v0.4rc.0.post1/index.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -285,21 +286,23 @@
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
   <h1>Source code for ignite.contrib.metrics.regression.median_absolute_error</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
 
 <span class="kn">from</span> <span class="nn">ignite.contrib.metrics.regression._base</span> <span class="kn">import</span> <span class="n">_BaseRegressionEpoch</span>
 
 
-<span class="k">def</span> <span class="nf">median_absolute_error_compute_fn</span><span class="p">(</span><span class="n">y_pred</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">median_absolute_error_compute_fn</span><span class="p">(</span><span class="n">y_pred</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     <span class="n">e</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">view_as</span><span class="p">(</span><span class="n">y_pred</span><span class="p">)</span> <span class="o">-</span> <span class="n">y_pred</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="MedianAbsoluteError"><a class="viewcode-back" href="../../../../../contrib/metrics.html#ignite.contrib.metrics.regression.MedianAbsoluteError">[docs]</a><span class="k">class</span> <span class="nc">MedianAbsoluteError</span><span class="p">(</span><span class="n">_BaseRegressionEpoch</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Calculates the Median Absolute Error:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculates the Median Absolute Error.</span>
 
-<span class="sd">    :math:`\text{MdAE} = \text{MD}_{j=1,n} \left( |A_j - P_j| \right)`,</span>
+<span class="sd">    .. math::</span>
+<span class="sd">        \text{MdAE} = \text{MD}_{j=1,n} \left( |A_j - P_j| \right)</span>
 
 <span class="sd">    where :math:`A_j` is the ground truth and :math:`P_j` is the predicted value.</span>
 
@@ -318,7 +321,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_transform</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_transform</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MedianAbsoluteError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">median_absolute_error_compute_fn</span><span class="p">,</span> <span class="n">output_transform</span><span class="p">)</span></div>
 </pre></div>
 

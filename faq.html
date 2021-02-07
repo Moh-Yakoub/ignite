@@ -134,7 +134,7 @@
               
               
                 <div class="version">
-                  0.4.2
+                  0.4.3
                 </div>
               
             
@@ -198,7 +198,7 @@
       <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: v0.4.2
+        v: v0.4.3
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -213,6 +213,7 @@
             <dd><a href="v0.4.0.post1/faq.html">v0.4.0.post1</a></dd>
             <dd><a href="v0.4.1/faq.html">v0.4.1</a></dd>
             <dd><a href="v0.4.2/faq.html">v0.4.2</a></dd>
+            <dd><a href="v0.4.3/faq.html">v0.4.3</a></dd>
             <dd><a href="v0.4rc.0.post1/faq.html">v0.4rc.0.post1</a></dd>
         </dl>
         <dl>
@@ -322,7 +323,9 @@ As a consequence, the following code is correct too:</p>
 <h2>Creating Custom Events based on Forward/Backward Pass<a class="headerlink" href="#creating-custom-events-based-on-forward-backward-pass" title="Permalink to this headline">¶</a></h2>
 <p>There are cases where the user might want to add events based on the loss calculation and backward pass. Ignite provides
 flexibility to the user to allow for this:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BackpropEvents</span><span class="p">(</span><span class="n">EventEnum</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ignite.engine</span> <span class="kn">import</span> <span class="n">EventEnum</span>
+
+<span class="k">class</span> <span class="nc">BackpropEvents</span><span class="p">(</span><span class="n">EventEnum</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Events based on back propagation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -354,7 +357,7 @@ flexibility to the user to allow for this:</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Events defined by user should inherit from <code class="xref py py-class docutils literal notranslate"><span class="pre">EventEnum</span></code></p>
+<p>Events defined by user should inherit from <a class="reference internal" href="engine.html#ignite.engine.events.EventEnum" title="ignite.engine.events.EventEnum"><code class="xref py py-class docutils literal notranslate"><span class="pre">EventEnum</span></code></a></p>
 </div>
 <p>More detailed implementation can be found in <a class="reference external" href="_modules/ignite/contrib/engines/tbptt.html#create_supervised_tbptt_trainer">TBPTT Trainer</a>.</p>
 </div>
@@ -405,7 +408,7 @@ basic examples of how to setup trainer or evaluator.</p>
     <span class="c1"># ...</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">state</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2"> - </span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">iteration</span><span class="p">,</span> <span class="n">batch</span><span class="o">.</span><span class="n">norm</span><span class="p">())</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">max_epochs</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">iteration</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">batch</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="p">)</span>
 
 <span class="n">trainer</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span><span class="n">train_step</span><span class="p">)</span>
@@ -447,7 +450,7 @@ In this case, there will be only a single epoch defined.</p>
     <span class="c1"># ...</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">state</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2"> - </span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">iteration</span><span class="p">,</span> <span class="n">batch</span><span class="o">.</span><span class="n">norm</span><span class="p">())</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">max_epochs</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">iteration</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">batch</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="p">)</span>
 
 <span class="n">trainer</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span><span class="n">train_step</span><span class="p">)</span>
@@ -497,7 +500,7 @@ In the code, we do not specify <cite>epoch_length</cite> which will be automatic
     <span class="c1"># ...</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">state</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2"> - </span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">iteration</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">max_epochs</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">iteration</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">batch</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="p">)</span>
 
 <span class="n">trainer</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span><span class="n">train_step</span><span class="p">)</span>
@@ -524,7 +527,7 @@ In the code, we do not specify <cite>epoch_length</cite> which will be automatic
     <span class="c1"># ...</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">state</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2"> - </span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">iteration</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">max_epochs</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">iteration</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">batch</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="p">)</span>
 
 <span class="n">evaluator</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span><span class="n">val_step</span><span class="p">)</span>
@@ -555,7 +558,7 @@ but here we will do this explicitly on iteration:</p>
     <span class="c1"># ...</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">state</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2"> - </span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">iteration</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">max_epochs</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">iteration</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">batch</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="p">)</span>
 
 <span class="n">trainer</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span><span class="n">train_step</span><span class="p">)</span>
@@ -584,7 +587,7 @@ but here we will do this explicitly on iteration:</p>
     <span class="c1"># ...</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">evaluator</span><span class="o">.</span><span class="n">state</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2"> - </span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">iteration</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">max_epochs</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">iteration</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">batch</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="p">)</span>
 
 <span class="n">evaluator</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span><span class="n">val_step</span><span class="p">)</span>
@@ -611,17 +614,17 @@ See an example in the documentation of the method.</p>
 
 <span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_COMPLETED</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">log_epoch_time</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="p">,</span> <span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="s2">&quot;EPOCH_COMPLETED&quot;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">epoch</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="s1">&#39;EPOCH_COMPLETED&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">log_total_time</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="s2">&quot;COMPLETED&quot;</span><span class="p">]))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total: </span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="s1">&#39;COMPLETED&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>For details, see <a class="reference internal" href="engine.html#ignite.engine.events.State" title="ignite.engine.events.State"><code class="xref py py-class docutils literal notranslate"><span class="pre">State</span></code></a>.</p>
 </div>
-<div class="section" id="detailed-profiling">
-<h3>Detailed profiling<a class="headerlink" href="#detailed-profiling" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="basic-time-profiling">
+<h3>Basic time profiling<a class="headerlink" href="#basic-time-profiling" title="Permalink to this headline">¶</a></h3>
 <p>User can setup <a class="reference internal" href="contrib/handlers.html#ignite.contrib.handlers.time_profilers.BasicTimeProfiler" title="ignite.contrib.handlers.time_profilers.BasicTimeProfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasicTimeProfiler</span></code></a> to fetch times spent in data
 processing, training step, event handlers:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ignite.contrib.handlers</span> <span class="kn">import</span> <span class="n">BasicTimeProfiler</span>
@@ -674,6 +677,46 @@ not yet triggered
 </pre></div>
 </div>
 <p>For details, see <a class="reference internal" href="contrib/handlers.html#ignite.contrib.handlers.time_profilers.BasicTimeProfiler" title="ignite.contrib.handlers.time_profilers.BasicTimeProfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasicTimeProfiler</span></code></a>.</p>
+</div>
+<div class="section" id="event-handlers-time-profiling">
+<h3>Event handlers time profiling<a class="headerlink" href="#event-handlers-time-profiling" title="Permalink to this headline">¶</a></h3>
+<p>If you want to get time breakdown per handler basis then you can setup
+<a class="reference internal" href="contrib/handlers.html#ignite.contrib.handlers.time_profilers.HandlersTimeProfiler" title="ignite.contrib.handlers.time_profilers.HandlersTimeProfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">HandlersTimeProfiler</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ignite.contrib.handlers</span> <span class="kn">import</span> <span class="n">HandlersTimeProfiler</span>
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="o">...</span>
+
+<span class="c1"># Create an object of the profiler and attach an engine to it</span>
+<span class="n">profiler</span> <span class="o">=</span> <span class="n">HandlersTimeProfiler</span><span class="p">()</span>
+<span class="n">profiler</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">trainer</span><span class="p">)</span>
+
+<span class="nd">@trainer</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">EPOCH_COMPLETED</span><span class="p">(</span><span class="n">every</span><span class="o">=</span><span class="mi">10</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">log_intermediate_results</span><span class="p">():</span>
+    <span class="n">profiler</span><span class="o">.</span><span class="n">print_results</span><span class="p">(</span><span class="n">profiler</span><span class="o">.</span><span class="n">get_results</span><span class="p">())</span>
+
+<span class="n">trainer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">dataloader</span><span class="p">,</span> <span class="n">max_epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Typical output:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-----------------------------------------  -----------------------  -------------- ...
+Handler                                    Event Name                     Total(s)
+-----------------------------------------  -----------------------  --------------
+run.&lt;locals&gt;.log_training_results          EPOCH_COMPLETED                19.43245
+run.&lt;locals&gt;.log_validation_results        EPOCH_COMPLETED                 2.55271
+run.&lt;locals&gt;.log_time                      EPOCH_COMPLETED                 0.00049
+run.&lt;locals&gt;.log_intermediate_results      EPOCH_COMPLETED                 0.00106
+run.&lt;locals&gt;.log_training_loss             ITERATION_COMPLETED               0.059
+run.&lt;locals&gt;.log_time                      COMPLETED                 not triggered
+-----------------------------------------  -----------------------  --------------
+Total                                                                     22.04571
+-----------------------------------------  -----------------------  --------------
+Processing took total 11.29543s [min/index: 0.00393s/1875, max/index: 0.00784s/0,
+ mean: 0.00602s, std: 0.00034s]
+Dataflow took total 16.24365s [min/index: 0.00533s/1874, max/index: 0.01129s/937,
+ mean: 0.00866s, std: 0.00113s]
+</pre></div>
+</div>
+<p>For details, see <a class="reference internal" href="contrib/handlers.html#ignite.contrib.handlers.time_profilers.HandlersTimeProfiler" title="ignite.contrib.handlers.time_profilers.HandlersTimeProfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">HandlersTimeProfiler</span></code></a>.</p>
 </div>
 <div class="section" id="custom-time-measures">
 <h3>Custom time measures<a class="headerlink" href="#custom-time-measures" title="Permalink to this headline">¶</a></h3>
@@ -744,7 +787,8 @@ not yet triggered
 <li><a class="reference internal" href="#switching-data-provider-during-the-training">Switching data provider during the training</a></li>
 <li><a class="reference internal" href="#time-profiling-during-training">Time profiling during training</a><ul>
 <li><a class="reference internal" href="#single-epoch-and-total-time">Single epoch and total time</a></li>
-<li><a class="reference internal" href="#detailed-profiling">Detailed profiling</a></li>
+<li><a class="reference internal" href="#basic-time-profiling">Basic time profiling</a></li>
+<li><a class="reference internal" href="#event-handlers-time-profiling">Event handlers time profiling</a></li>
 <li><a class="reference internal" href="#custom-time-measures">Custom time measures</a></li>
 </ul>
 </li>
