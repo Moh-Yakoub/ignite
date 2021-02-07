@@ -520,8 +520,7 @@
 <span class="sd">            # Run evaluation on epoch completed event</span>
 <span class="sd">            # ...</span>
 
-<span class="sd">            def score_function(engine):</span>
-<span class="sd">                return engine.state.metrics[&#39;accuracy&#39;]</span>
+<span class="sd">            score_function = Checkpoint.get_default_score_fn(&quot;accuracy&quot;)</span>
 
 <span class="sd">            to_save = {&#39;model&#39;: model}</span>
 <span class="sd">            handler = Checkpoint(</span>
@@ -595,7 +594,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">include_self</span> <span class="o">=</span> <span class="n">include_self</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">greater_or_equal</span> <span class="o">=</span> <span class="n">greater_or_equal</span>
 
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Checkpoint.reset"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.Checkpoint.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Method to reset saved checkpoint names.</span>
 
 <span class="sd">        Use this method if the engine will independently run multiple times:</span>
@@ -618,8 +617,9 @@
 <span class="sd">            trainer.run(data1, max_epochs=max_epochs)</span>
 <span class="sd">            print(&quot;Last checkpoint:&quot;, checkpointer.last_checkpoint)</span>
 
+<span class="sd">        .. versionadded:: 0.4.3</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span> <span class="o">=</span> <span class="p">[]</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">last_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -724,7 +724,7 @@
                 <span class="n">checkpoint</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">checkpoint</span>
 
-    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Checkpoint.setup_filename_pattern"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.Checkpoint.setup_filename_pattern">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">setup_filename_pattern</span><span class="p">(</span>
         <span class="n">with_prefix</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">with_score</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">with_score_name</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">with_global_step</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -752,6 +752,8 @@
 
 <span class="sd">                print(filename_pattern)</span>
 <span class="sd">                &gt; &quot;{filename_prefix}_{name}_{global_step}_{score_name}={score}.{ext}&quot;</span>
+
+<span class="sd">        .. versionadded:: 0.4.3</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">filename_pattern</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{name}</span><span class="s2">&quot;</span>
 
@@ -772,7 +774,7 @@
             <span class="n">filename_pattern</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{filename_prefix}</span><span class="s2">_&quot;</span> <span class="o">+</span> <span class="n">filename_pattern</span>
 
         <span class="n">filename_pattern</span> <span class="o">+=</span> <span class="s2">&quot;.</span><span class="si">{ext}</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="n">filename_pattern</span>
+        <span class="k">return</span> <span class="n">filename_pattern</span></div>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_check_objects</span><span class="p">(</span><span class="n">objs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -849,12 +851,66 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">obj</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="n">k</span><span class="p">])</span></div>
 
-    <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OrderedDict[str, List[Tuple[int, str]]]&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="s2">&quot;saved&quot;</span><span class="p">,</span> <span class="p">[(</span><span class="n">p</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">])])</span>
+<div class="viewcode-block" id="Checkpoint.state_dict"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.Checkpoint.state_dict">[docs]</a>    <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OrderedDict[str, List[Tuple[int, str]]]&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Method returns state dict with saved items: list of ``(priority, filename)`` pairs.</span>
+<span class="sd">        Can be used to save internal state of the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="s2">&quot;saved&quot;</span><span class="p">,</span> <span class="p">[(</span><span class="n">p</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span><span class="p">])])</span></div>
 
-    <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Checkpoint.load_state_dict"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.Checkpoint.load_state_dict">[docs]</a>    <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Method replace internal state of the class with provided state dict data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state_dict (Mapping): a dict with &quot;saved&quot; key and list of ``(priority, filename)`` pairs as values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_saved</span> <span class="o">=</span> <span class="p">[</span><span class="n">Checkpoint</span><span class="o">.</span><span class="n">Item</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;saved&quot;</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="Checkpoint.get_default_score_fn"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.Checkpoint.get_default_score_fn">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_default_score_fn</span><span class="p">(</span><span class="n">metric_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">score_sign</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Helper method to get default score function based on the metric name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            metric_name (str): metric name to get the value from ``engine.state.metrics``.</span>
+<span class="sd">                Engine is the one to which :class:`~ignite.handlers.checkpoint.Checkpoint` handler is added.</span>
+<span class="sd">            score_sign (float): sign of the score: 1.0 or -1.0. For error-like metrics, e.g. smaller is better,</span>
+<span class="sd">                a negative score sign should be used (objects with larger score are retained). Default, 1.0.</span>
+
+<span class="sd">        Exemples:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.handlers import Checkpoint</span>
+
+<span class="sd">            best_acc_score = Checkpoint.get_default_score_fn(&quot;accuracy&quot;)</span>
+
+<span class="sd">            best_model_handler = Checkpoint(</span>
+<span class="sd">                to_save, save_handler, score_name=&quot;val_accuracy&quot;, score_function=best_acc_score</span>
+<span class="sd">            )</span>
+<span class="sd">            evaluator.add_event_handler(Events.COMPLETED, best_model_handler)</span>
+
+<span class="sd">        Usage with error-like metric:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            from ignite.handlers import Checkpoint</span>
+
+<span class="sd">            neg_loss_score = Checkpoint.get_default_score_fn(&quot;loss&quot;, -1.0)</span>
+
+<span class="sd">            best_model_handler = Checkpoint(</span>
+<span class="sd">                to_save, save_handler, score_name=&quot;val_neg_loss&quot;, score_function=neg_loss_score</span>
+<span class="sd">            )</span>
+<span class="sd">            evaluator.add_event_handler(Events.COMPLETED, best_model_handler)</span>
+
+<span class="sd">        .. versionadded:: 0.4.3</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">score_sign</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Argument score_sign should be 1 or -1&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">score_sign</span> <span class="o">*</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">wrapper</span></div></div>
 
 
 <div class="viewcode-block" id="DiskSaver"><a class="viewcode-back" href="../../../handlers.html#ignite.handlers.DiskSaver">[docs]</a><span class="k">class</span> <span class="nc">DiskSaver</span><span class="p">(</span><span class="n">BaseSaveHandler</span><span class="p">):</span>

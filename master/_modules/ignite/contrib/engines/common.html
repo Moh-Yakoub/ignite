@@ -856,12 +856,7 @@
     <span class="k">return</span> <span class="n">setup_clearml_logging</span><span class="p">(</span><span class="n">trainer</span><span class="p">,</span> <span class="n">optimizers</span><span class="p">,</span> <span class="n">evaluators</span><span class="p">,</span> <span class="n">log_every_iters</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">get_default_score_fn</span><span class="p">(</span><span class="n">metric_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="n">score</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">score</span>
-
-    <span class="k">return</span> <span class="n">wrapper</span>
+<span class="n">get_default_score_fn</span> <span class="o">=</span> <span class="n">Checkpoint</span><span class="o">.</span><span class="n">get_default_score_fn</span>
 
 
 <div class="viewcode-block" id="gen_save_best_models_by_val_score"><a class="viewcode-back" href="../../../../contrib/engines.html#ignite.contrib.engines.common.gen_save_best_models_by_val_score">[docs]</a><span class="k">def</span> <span class="nf">gen_save_best_models_by_val_score</span><span class="p">(</span>
@@ -915,7 +910,7 @@
         <span class="n">n_saved</span><span class="o">=</span><span class="n">n_saved</span><span class="p">,</span>
         <span class="n">global_step_transform</span><span class="o">=</span><span class="n">global_step_transform</span><span class="p">,</span>
         <span class="n">score_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">metric_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="n">score_function</span><span class="o">=</span><span class="n">get_default_score_fn</span><span class="p">(</span><span class="n">metric_name</span><span class="p">),</span>
+        <span class="n">score_function</span><span class="o">=</span><span class="n">Checkpoint</span><span class="o">.</span><span class="n">get_default_score_fn</span><span class="p">(</span><span class="n">metric_name</span><span class="p">),</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">evaluator</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">,</span> <span class="n">best_model_handler</span><span class="p">)</span>

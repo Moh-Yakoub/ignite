@@ -515,8 +515,7 @@ according to computed validation metric:</p>
 <span class="c1"># Run evaluation on epoch completed event</span>
 <span class="c1"># ...</span>
 
-<span class="k">def</span> <span class="nf">score_function</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;accuracy&#39;</span><span class="p">]</span>
+<span class="n">score_function</span> <span class="o">=</span> <span class="n">Checkpoint</span><span class="o">.</span><span class="n">get_default_score_fn</span><span class="p">(</span><span class="s2">&quot;accuracy&quot;</span><span class="p">)</span>
 
 <span class="n">to_save</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="n">model</span><span class="p">}</span>
 <span class="n">handler</span> <span class="o">=</span> <span class="n">Checkpoint</span><span class="p">(</span>
@@ -538,6 +537,47 @@ according to computed validation metric:</p>
 <li><p>Added <code class="docutils literal notranslate"><span class="pre">greater_or_equal</span></code> argument.</p></li>
 </ul>
 </div>
+<dl class="py method">
+<dt id="ignite.handlers.Checkpoint.get_default_score_fn">
+<em class="property">static </em><code class="sig-name descname">get_default_score_fn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">metric_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">score_sign</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span> &#x2192; Callable<a class="reference internal" href="_modules/ignite/handlers/checkpoint.html#Checkpoint.get_default_score_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.handlers.Checkpoint.get_default_score_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method to get default score function based on the metric name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – metric name to get the value from <code class="docutils literal notranslate"><span class="pre">engine.state.metrics</span></code>.
+Engine is the one to which <code class="xref py py-class docutils literal notranslate"><span class="pre">Checkpoint</span></code> handler is added.</p></li>
+<li><p><strong>score_sign</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – sign of the score: 1.0 or -1.0. For error-like metrics, e.g. smaller is better,
+a negative score sign should be used (objects with larger score are retained). Default, 1.0.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Exemples:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ignite.handlers</span> <span class="kn">import</span> <span class="n">Checkpoint</span>
+
+<span class="n">best_acc_score</span> <span class="o">=</span> <span class="n">Checkpoint</span><span class="o">.</span><span class="n">get_default_score_fn</span><span class="p">(</span><span class="s2">&quot;accuracy&quot;</span><span class="p">)</span>
+
+<span class="n">best_model_handler</span> <span class="o">=</span> <span class="n">Checkpoint</span><span class="p">(</span>
+    <span class="n">to_save</span><span class="p">,</span> <span class="n">save_handler</span><span class="p">,</span> <span class="n">score_name</span><span class="o">=</span><span class="s2">&quot;val_accuracy&quot;</span><span class="p">,</span> <span class="n">score_function</span><span class="o">=</span><span class="n">best_acc_score</span>
+<span class="p">)</span>
+<span class="n">evaluator</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">,</span> <span class="n">best_model_handler</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Usage with error-like metric:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ignite.handlers</span> <span class="kn">import</span> <span class="n">Checkpoint</span>
+
+<span class="n">neg_loss_score</span> <span class="o">=</span> <span class="n">Checkpoint</span><span class="o">.</span><span class="n">get_default_score_fn</span><span class="p">(</span><span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+
+<span class="n">best_model_handler</span> <span class="o">=</span> <span class="n">Checkpoint</span><span class="p">(</span>
+    <span class="n">to_save</span><span class="p">,</span> <span class="n">save_handler</span><span class="p">,</span> <span class="n">score_name</span><span class="o">=</span><span class="s2">&quot;val_neg_loss&quot;</span><span class="p">,</span> <span class="n">score_function</span><span class="o">=</span><span class="n">neg_loss_score</span>
+<span class="p">)</span>
+<span class="n">evaluator</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">,</span> <span class="n">best_model_handler</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 0.4.3.</span></p>
+</div>
+</dd></dl>
+
 <dl class="py method">
 <dt id="ignite.handlers.Checkpoint.load_objects">
 <em class="property">static </em><code class="sig-name descname">load_objects</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">to_load</span><span class="p">:</span> <span class="n">Mapping</span></em>, <em class="sig-param"><span class="n">checkpoint</span><span class="p">:</span> <span class="n">Mapping</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/ignite/handlers/checkpoint.html#Checkpoint.load_objects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.handlers.Checkpoint.load_objects" title="Permalink to this definition">¶</a></dt>
@@ -577,6 +617,85 @@ the user to load part of the pretrained model (useful for example, in Transfer L
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ignite.handlers.Checkpoint.load_state_dict">
+<code class="sig-name descname">load_state_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state_dict</span><span class="p">:</span> <span class="n">Mapping</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/ignite/handlers/checkpoint.html#Checkpoint.load_state_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.handlers.Checkpoint.load_state_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method replace internal state of the class with provided state dict data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state_dict</strong> (<em>Mapping</em>) – a dict with “saved” key and list of <code class="docutils literal notranslate"><span class="pre">(priority,</span> <span class="pre">filename)</span></code> pairs as values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ignite.handlers.Checkpoint.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/ignite/handlers/checkpoint.html#Checkpoint.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.handlers.Checkpoint.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to reset saved checkpoint names.</p>
+<p>Use this method if the engine will independently run multiple times:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ignite.handlers</span> <span class="kn">import</span> <span class="n">Checkpoint</span>
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">checkpointer</span> <span class="o">=</span> <span class="n">Checkpoint</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="n">trainer</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">COMPLETED</span><span class="p">,</span> <span class="n">checkpointer</span><span class="p">)</span>
+<span class="n">trainer</span><span class="o">.</span><span class="n">add_event_handler</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">STARTED</span><span class="p">,</span> <span class="n">checkpointer</span><span class="o">.</span><span class="n">reset</span><span class="p">)</span>
+
+<span class="c1"># fold 0</span>
+<span class="n">trainer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">data0</span><span class="p">,</span> <span class="n">max_epochs</span><span class="o">=</span><span class="n">max_epochs</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Last checkpoint:&quot;</span><span class="p">,</span> <span class="n">checkpointer</span><span class="o">.</span><span class="n">last_checkpoint</span><span class="p">)</span>
+
+<span class="c1"># fold 1</span>
+<span class="n">trainer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">data1</span><span class="p">,</span> <span class="n">max_epochs</span><span class="o">=</span><span class="n">max_epochs</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Last checkpoint:&quot;</span><span class="p">,</span> <span class="n">checkpointer</span><span class="o">.</span><span class="n">last_checkpoint</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 0.4.3.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ignite.handlers.Checkpoint.setup_filename_pattern">
+<em class="property">static </em><code class="sig-name descname">setup_filename_pattern</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">with_prefix</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">with_score</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">with_score_name</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">with_global_step</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="_modules/ignite/handlers/checkpoint.html#Checkpoint.setup_filename_pattern"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.handlers.Checkpoint.setup_filename_pattern" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper method to get the default filename pattern for a checkpoint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>with_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, the <code class="docutils literal notranslate"><span class="pre">filename_prefix</span></code> is added to the filename pattern:
+<code class="docutils literal notranslate"><span class="pre">{filename_prefix}_{name}...</span></code>. Default, True.</p></li>
+<li><p><strong>with_score</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, <code class="docutils literal notranslate"><span class="pre">score</span></code> is added to the filename pattern: <code class="docutils literal notranslate"><span class="pre">..._{score}.{ext}</span></code>.
+Default, True. At least one of <code class="docutils literal notranslate"><span class="pre">with_score</span></code> and <code class="docutils literal notranslate"><span class="pre">with_global_step</span></code> should be True.</p></li>
+<li><p><strong>with_score_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, <code class="docutils literal notranslate"><span class="pre">score_name</span></code> is added to the filename pattern:
+<code class="docutils literal notranslate"><span class="pre">..._{score_name}={score}.{ext}</span></code>. If activated, argument <code class="docutils literal notranslate"><span class="pre">with_score</span></code> should be
+also True, otherwise an error is raised. Default, True.</p></li>
+<li><p><strong>with_global_step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, <code class="docutils literal notranslate"><span class="pre">{global_step}</span></code> is added to the
+filename pattern: <code class="docutils literal notranslate"><span class="pre">...{name}_{global_step}...</span></code>.
+At least one of <code class="docutils literal notranslate"><span class="pre">with_score</span></code> and <code class="docutils literal notranslate"><span class="pre">with_global_step</span></code> should be True.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ignite.handlers</span> <span class="kn">import</span> <span class="n">Checkpoint</span>
+
+<span class="n">filename_pattern</span> <span class="o">=</span> <span class="n">Checkpoint</span><span class="o">.</span><span class="n">setup_filename_pattern</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">filename_pattern</span><span class="p">)</span>
+<span class="o">&gt;</span> <span class="s2">&quot;</span><span class="si">{filename_prefix}</span><span class="s2">_</span><span class="si">{name}</span><span class="s2">_</span><span class="si">{global_step}</span><span class="s2">_</span><span class="si">{score_name}</span><span class="s2">=</span><span class="si">{score}</span><span class="s2">.</span><span class="si">{ext}</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 0.4.3.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ignite.handlers.Checkpoint.state_dict">
+<code class="sig-name descname">state_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; OrderedDict<span class="p">[</span>str<span class="p">, </span>List<span class="p">[</span>Tuple<span class="p">[</span>int<span class="p">, </span>str<span class="p">]</span><span class="p">]</span><span class="p">]</span><a class="reference internal" href="_modules/ignite/handlers/checkpoint.html#Checkpoint.state_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.handlers.Checkpoint.state_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method returns state dict with saved items: list of <code class="docutils literal notranslate"><span class="pre">(priority,</span> <span class="pre">filename)</span></code> pairs.
+Can be used to save internal state of the class.</p>
 </dd></dl>
 
 </dd></dl>
