@@ -323,7 +323,7 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#ignite.engine.events.State" title="ignite.engine.events.State"><code class="xref py py-obj docutils literal notranslate"><span class="pre">State</span></code></a></p></td>
 <td><p>An object that is used to pass internal and user-defined state between event handlers.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventsList</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.engine.events.EventsList" title="ignite.engine.events.EventsList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventsList</span></code></a></p></td>
 <td><p>Collection of events stacked by operator <cite>__or__</cite>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#ignite.engine.events.RemovableEventHandle" title="ignite.engine.events.RemovableEventHandle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RemovableEventHandle</span></code></a></p></td>
@@ -1161,6 +1161,28 @@ this class. For example, Custom events based on the loss calculation and backwar
 </pre></div>
 </div>
 </div></blockquote>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ignite.engine.events.EventsList">
+<em class="property">class </em><code class="sig-prename descclassname">ignite.engine.events.</code><code class="sig-name descname">EventsList</code><a class="reference internal" href="_modules/ignite/engine/events.html#EventsList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.engine.events.EventsList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collection of events stacked by operator <cite>__or__</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">events</span> <span class="o">=</span> <span class="n">Events</span><span class="o">.</span><span class="n">STARTED</span> <span class="o">|</span> <span class="n">Events</span><span class="o">.</span><span class="n">COMPLETED</span>
+<span class="n">events</span> <span class="o">|=</span> <span class="n">Events</span><span class="o">.</span><span class="n">ITERATION_STARTED</span><span class="p">(</span><span class="n">every</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="o">...</span>
+
+<span class="nd">@engine</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">call_on_events</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
+    <span class="c1"># do something</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@engine</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">Events</span><span class="o">.</span><span class="n">STARTED</span> <span class="o">|</span> <span class="n">Events</span><span class="o">.</span><span class="n">COMPLETED</span> <span class="o">|</span> <span class="n">Events</span><span class="o">.</span><span class="n">ITERATION_STARTED</span><span class="p">(</span><span class="n">every</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">call_on_events</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
+    <span class="c1"># do something</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py class">

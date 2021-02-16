@@ -576,7 +576,7 @@
         <span class="k">return</span> <span class="n">EventsList</span><span class="p">()</span> <span class="o">|</span> <span class="bp">self</span> <span class="o">|</span> <span class="n">other</span></div>
 
 
-<span class="k">class</span> <span class="nc">EventsList</span><span class="p">:</span>
+<div class="viewcode-block" id="EventsList"><a class="viewcode-back" href="../../../engine.html#ignite.engine.events.EventsList">[docs]</a><span class="k">class</span> <span class="nc">EventsList</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Collection of events stacked by operator `__or__`.</span>
 
 <span class="sd">    .. code-block:: python</span>
@@ -592,7 +592,7 @@
 
 <span class="sd">    or</span>
 
-<span class="sd">     .. code-block:: python</span>
+<span class="sd">    .. code-block:: python</span>
 
 <span class="sd">        @engine.on(Events.STARTED | Events.COMPLETED | Events.ITERATION_STARTED(every=3))</span>
 <span class="sd">        def call_on_events(engine):</span>
@@ -619,7 +619,7 @@
 
     <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Events</span><span class="p">,</span> <span class="n">CallableEventWithFilter</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;EventsList&quot;</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="n">event</span><span class="o">=</span><span class="n">other</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
 
 <div class="viewcode-block" id="State"><a class="viewcode-back" href="../../../engine.html#ignite.engine.events.State">[docs]</a><span class="k">class</span> <span class="nc">State</span><span class="p">:</span>
