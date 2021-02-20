@@ -616,28 +616,31 @@ devices. Therefore, once collected, these internal variables can be used to comp
 <tr class="row-even"><td><p><a class="reference internal" href="#ignite.metrics.mIoU" title="ignite.metrics.mIoU"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mIoU</span></code></a></p></td>
 <td><p>Calculates mean Intersection over Union using <a class="reference internal" href="#ignite.metrics.ConfusionMatrix" title="ignite.metrics.ConfusionMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfusionMatrix</span></code></a> metric.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.metrics.Precision" title="ignite.metrics.Precision"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Precision</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.metrics.MultiLabelConfusionMatrix" title="ignite.metrics.MultiLabelConfusionMatrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiLabelConfusionMatrix</span></code></a></p></td>
+<td><p>Calculates a confusion matrix for multi-labelled, multi-class data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.metrics.Precision" title="ignite.metrics.Precision"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Precision</span></code></a></p></td>
 <td><p>Calculates precision for binary and multiclass data.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#ignite.metrics.PSNR" title="ignite.metrics.PSNR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PSNR</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.metrics.PSNR" title="ignite.metrics.PSNR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PSNR</span></code></a></p></td>
 <td><p>Computes average <a class="reference external" href="https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio">Peak signal-to-noise ratio (PSNR)</a>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.metrics.Recall" title="ignite.metrics.Recall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Recall</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.metrics.Recall" title="ignite.metrics.Recall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Recall</span></code></a></p></td>
 <td><p>Calculates recall for binary and multiclass data.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#ignite.metrics.RootMeanSquaredError" title="ignite.metrics.RootMeanSquaredError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RootMeanSquaredError</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.metrics.RootMeanSquaredError" title="ignite.metrics.RootMeanSquaredError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RootMeanSquaredError</span></code></a></p></td>
 <td><p>Calculates the <a class="reference external" href="https://en.wikipedia.org/wiki/Root-mean-square_deviation">root mean squared error</a>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.metrics.RunningAverage" title="ignite.metrics.RunningAverage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RunningAverage</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.metrics.RunningAverage" title="ignite.metrics.RunningAverage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RunningAverage</span></code></a></p></td>
 <td><p>Compute running average of a metric or the output of process function.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#ignite.metrics.VariableAccumulation" title="ignite.metrics.VariableAccumulation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VariableAccumulation</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.metrics.VariableAccumulation" title="ignite.metrics.VariableAccumulation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VariableAccumulation</span></code></a></p></td>
 <td><p>Single variable accumulator helper to compute (arithmetic, geometric, harmonic) average of a single variable.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Frequency</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Frequency</span></code></p></td>
 <td><p>Provides metrics for the number of examples processed per second.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#ignite.metrics.SSIM" title="ignite.metrics.SSIM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSIM</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.metrics.SSIM" title="ignite.metrics.SSIM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSIM</span></code></a></p></td>
 <td><p>Computes Structual Similarity Index Measure</p></td>
 </tr>
 </tbody>
@@ -1368,6 +1371,47 @@ metrics is detached, the metric is considered detached too.</p>
 <span class="c1"># fully attached</span>
 <span class="k">assert</span> <span class="ow">not</span> <span class="n">precision</span><span class="o">.</span><span class="n">is_attached</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
 </pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ignite.metrics.MultiLabelConfusionMatrix">
+<em class="property">class </em><code class="sig-prename descclassname">ignite.metrics.</code><code class="sig-name descname">MultiLabelConfusionMatrix</code><span class="sig-paren">(</span><em class="sig-param">num_classes: int</em>, <em class="sig-param">output_transform: Callable = &lt;function MultiLabelConfusionMatrix.&lt;lambda&gt;&gt;</em>, <em class="sig-param">device: Union[str</em>, <em class="sig-param">torch.device] = device(type='cpu')</em>, <em class="sig-param">normalized: bool = False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ignite/metrics/multilabel_confusion_matrix.html#MultiLabelConfusionMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.metrics.MultiLabelConfusionMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates a confusion matrix for multi-labelled, multi-class data.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code> must receive output of the form <code class="docutils literal notranslate"><span class="pre">(y_pred,</span> <span class="pre">y)</span></code>.</p></li>
+<li><p><cite>y_pred</cite> must contain 0s and 1s and has the following shape (batch_size, num_classes, …).
+For example, <cite>y_pred[i, j]</cite> = 1 denotes that the j’th class is one of the labels of the i’th sample as predicted.</p></li>
+<li><p><cite>y</cite> should have the following shape (batch_size, num_classes, …) with 0s and 1s. For example,
+<cite>y[i, j]</cite> = 1 denotes that the j’th class is one of the labels of the i’th sample according to the ground truth.</p></li>
+<li><p>both <cite>y</cite> and <cite>y_pred</cite> must be torch Tensors having any of the following types:
+{torch.uint8, torch.int8, torch.int16, torch.int32, torch.int64}. They must have the same dimensions.</p></li>
+<li><p>The confusion matrix ‘M’ is of dimension (num_classes, 2, 2).</p>
+<ul>
+<li><p>M[i, 0, 0] corresponds to count/rate of true negatives of class i</p></li>
+<li><p>M[i, 0, 1] corresponds to count/rate of false positives of class i</p></li>
+<li><p>M[i, 1, 0] corresponds to count/rate of false negatives of class i</p></li>
+<li><p>M[i, 1, 1] corresponds to count/rate of true positives of class i</p></li>
+</ul>
+</li>
+<li><p>The classes present in M are indexed as 0, … , num_classes-1 as can be inferred from above.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_classes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of classes, should be &gt; 1.</p></li>
+<li><p><strong>output_transform</strong> (<em>callable</em><em>, </em><em>optional</em>) – a callable that is used to transform the
+<a class="reference internal" href="engine.html#ignite.engine.engine.Engine" title="ignite.engine.engine.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a>’s <code class="docutils literal notranslate"><span class="pre">process_function</span></code>’s output into the
+form expected by the metric. This can be useful if, for example, you have a multi-output model and
+you want to compute the metric with respect to one of the outputs.</p></li>
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em> or </em><em>torch.device</em>) – specifies which device updates are accumulated on. Setting the metric’s
+device to be the same as your <code class="docutils literal notranslate"><span class="pre">update</span></code> arguments ensures the <code class="docutils literal notranslate"><span class="pre">update</span></code> method is non-blocking. By
+default, CPU.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 0.5.0.</span></p>
 </div>
 </dd></dl>
 
