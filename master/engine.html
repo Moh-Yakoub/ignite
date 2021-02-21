@@ -366,6 +366,18 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#ignite.engine.create_supervised_evaluator" title="ignite.engine.create_supervised_evaluator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_supervised_evaluator</span></code></a></p></td>
 <td><p>Factory function for creating an evaluator for supervised models.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.engine.supervised_training_step" title="ignite.engine.supervised_training_step"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supervised_training_step</span></code></a></p></td>
+<td><p>Factory function for supervised training.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.engine.supervised_training_step_amp" title="ignite.engine.supervised_training_step_amp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supervised_training_step_amp</span></code></a></p></td>
+<td><p>Factory function for supervised training using <code class="docutils literal notranslate"><span class="pre">torch.cuda.amp</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#ignite.engine.supervised_training_step_apex" title="ignite.engine.supervised_training_step_apex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supervised_training_step_apex</span></code></a></p></td>
+<td><p>Factory function for supervised training using apex.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ignite.engine.supervised_training_step_tpu" title="ignite.engine.supervised_training_step_tpu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supervised_training_step_tpu</span></code></a></p></td>
+<td><p>Factory function for supervised training using <code class="docutils literal notranslate"><span class="pre">torch_xla</span></code>.</p></td>
+</tr>
 </tbody>
 </table>
 <p>More details about those structures can be found in <a class="reference internal" href="concepts.html"><span class="doc">Concepts</span></a>.</p>
@@ -854,13 +866,13 @@ other state values defined by <cite>engine.state_dict_user_keys</cite></p>
 
 <dl class="py function">
 <dt id="ignite.engine.create_supervised_trainer">
-<code class="sig-prename descclassname">ignite.engine.</code><code class="sig-name descname">create_supervised_trainer</code><span class="sig-paren">(</span><em class="sig-param">model: torch.nn.modules.module.Module, optimizer: torch.optim.optimizer.Optimizer, loss_fn: Union[Callable, torch.nn.modules.module.Module], device: Optional[Union[str, torch.device]] = None, non_blocking: bool = False, prepare_batch: Callable = &lt;function _prepare_batch&gt;, output_transform: Callable = &lt;function &lt;lambda&gt;&gt;, deterministic: bool = False</em><span class="sig-paren">)</span> &#x2192; ignite.engine.engine.Engine<a class="reference internal" href="_modules/ignite/engine.html#create_supervised_trainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.engine.create_supervised_trainer" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">ignite.engine.</code><code class="sig-name descname">create_supervised_trainer</code><span class="sig-paren">(</span><em class="sig-param">model: torch.nn.modules.module.Module, optimizer: torch.optim.optimizer.Optimizer, loss_fn: Union[Callable, torch.nn.modules.module.Module], device: Optional[Union[str, torch.device]] = None, non_blocking: bool = False, prepare_batch: Callable = &lt;function _prepare_batch&gt;, output_transform: Callable = &lt;function &lt;lambda&gt;&gt;, deterministic: bool = False, amp_mode: Optional[str] = None, scaler: Union[bool, torch.cuda.amp.GradScaler] = False</em><span class="sig-paren">)</span> &#x2192; ignite.engine.engine.Engine<a class="reference internal" href="_modules/ignite/engine.html#create_supervised_trainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.engine.create_supervised_trainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Factory function for creating a trainer for supervised models.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<cite>torch.nn.Module</cite>) – the model to train.</p></li>
-<li><p><strong>optimizer</strong> (<cite>torch.optim.Optimizer</cite>) – the optimizer to use.</p></li>
+<li><p><strong>model</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.nn.Module</em></a>) – the model to train.</p></li>
+<li><p><strong>optimizer</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/optim.html#torch.optim.Optimizer" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.optim.Optimizer</em></a>) – the optimizer to use.</p></li>
 <li><p><strong>loss_fn</strong> (<em>torch.nn loss function</em>) – the loss function to use.</p></li>
 <li><p><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – device type specification (default: None).
 Applies to batches after starting the engine. Model <em>will not</em> be moved.
@@ -874,9 +886,21 @@ to be assigned to engine’s state.output after each iteration. Default is retur
 <li><p><strong>deterministic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – if True, returns deterministic engine of type
 <a class="reference internal" href="#ignite.engine.deterministic.DeterministicEngine" title="ignite.engine.deterministic.DeterministicEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">DeterministicEngine</span></code></a>, otherwise <a class="reference internal" href="#ignite.engine.engine.Engine" title="ignite.engine.engine.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a>
 (default: False).</p></li>
+<li><p><strong>amp_mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – can be <code class="docutils literal notranslate"><span class="pre">amp</span></code> or <code class="docutils literal notranslate"><span class="pre">apex</span></code>, model and optimizer will be casted to float16 using
+<a class="reference external" href="https://pytorch.org/docs/stable/amp.html">torch.cuda.amp</a> for <code class="docutils literal notranslate"><span class="pre">amp</span></code> and
+using <a class="reference external" href="https://nvidia.github.io/apex">apex</a> for <code class="docutils literal notranslate"><span class="pre">apex</span></code>. (default: None)</p></li>
+<li><p><strong>scaler</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/amp.html#torch.cuda.amp.GradScaler" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.cuda.amp.GradScaler</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – GradScaler instance for gradient scaling if <cite>torch&gt;=1.6.0</cite>
+and <code class="docutils literal notranslate"><span class="pre">amp_mode</span></code> is <code class="docutils literal notranslate"><span class="pre">amp</span></code>. If <code class="docutils literal notranslate"><span class="pre">amp_mode</span></code> is <code class="docutils literal notranslate"><span class="pre">apex</span></code>, this argument will be ignored.
+If True, will create default GradScaler. If GradScaler instance is passed, it will be used instead.
+(default: False)</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">scaler</span></code> is True, GradScaler instance will be created internally and trainer state has attribute named
+<code class="docutils literal notranslate"><span class="pre">scaler</span></code> for that instance and can be used for saving and loading.</p>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><cite>engine.state.output</cite> for this engine is defined by <cite>output_transform</cite> parameter and is the loss
@@ -893,6 +917,13 @@ For more information see:</p>
 <li><p><a class="reference external" href="https://github.com/pytorch/pytorch/issues/7844#issuecomment-503713840">PyTorch’s Explanation</a></p></li>
 </ul>
 </div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">amp_mode='apex'</span></code> , the model(s) and optimizer(s) must be initialized beforehand
+since <code class="docutils literal notranslate"><span class="pre">amp.initialize</span></code> should be called after you have finished constructing your model(s)
+and optimizer(s), but before you send your model through any DistributedDataParallel wrapper.</p>
+<p>See more: <a class="reference external" href="https://nvidia.github.io/apex/amp.html#module-apex.amp">https://nvidia.github.io/apex/amp.html#module-apex.amp</a></p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>a trainer engine with supervised update function.</p>
@@ -901,6 +932,12 @@ For more information see:</p>
 <dd class="field-even"><p><a class="reference internal" href="#ignite.engine.engine.Engine" title="ignite.engine.engine.Engine">Engine</a></p>
 </dd>
 </dl>
+<div class="versionchanged">
+<ul>
+<span class="versionmodified changed">Changed in version 0.5.0: </span><li><p>Added <code class="docutils literal notranslate"><span class="pre">amp_mode</span></code> argument for automatic mixed precision.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">scaler</span></code> argument for gradient scaling.</p></li>
+</ul>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -948,6 +985,139 @@ The <cite>model</cite> should be moved by the user before creating an optimizer.
 <dd class="field-even"><p><a class="reference internal" href="#ignite.engine.engine.Engine" title="ignite.engine.engine.Engine">Engine</a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="ignite.engine.supervised_training_step">
+<code class="sig-prename descclassname">ignite.engine.</code><code class="sig-name descname">supervised_training_step</code><span class="sig-paren">(</span><em class="sig-param">model: torch.nn.modules.module.Module, optimizer: torch.optim.optimizer.Optimizer, loss_fn: Union[Callable, torch.nn.modules.module.Module], device: Optional[Union[str, torch.device]] = None, non_blocking: bool = False, prepare_batch: Callable = &lt;function _prepare_batch&gt;, output_transform: Callable = &lt;function &lt;lambda&gt;&gt;</em><span class="sig-paren">)</span> &#x2192; Callable<a class="reference internal" href="_modules/ignite/engine.html#supervised_training_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.engine.supervised_training_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory function for supervised training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.nn.Module</em></a>) – the model to train.</p></li>
+<li><p><strong>optimizer</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/optim.html#torch.optim.Optimizer" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.optim.Optimizer</em></a>) – the optimizer to use.</p></li>
+<li><p><strong>loss_fn</strong> (<em>torch.nn loss function</em>) – the loss function to use.</p></li>
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – device type specification (default: None).
+Applies to batches after starting the engine. Model <em>will not</em> be moved.
+Device can be CPU, GPU.</p></li>
+<li><p><strong>non_blocking</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – if True and this copy is between CPU and GPU, the copy may occur asynchronously
+with respect to the host. For other cases, this argument has no effect.</p></li>
+<li><p><strong>prepare_batch</strong> (<em>callable</em><em>, </em><em>optional</em>) – function that receives <cite>batch</cite>, <cite>device</cite>, <cite>non_blocking</cite> and outputs
+tuple of tensors <cite>(batch_x, batch_y)</cite>.</p></li>
+<li><p><strong>output_transform</strong> (<em>callable</em><em>, </em><em>optional</em>) – function that receives ‘x’, ‘y’, ‘y_pred’, ‘loss’ and returns value
+to be assigned to engine’s state.output after each iteration. Default is returning <cite>loss.item()</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>update function.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 0.5.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="ignite.engine.supervised_training_step_amp">
+<code class="sig-prename descclassname">ignite.engine.</code><code class="sig-name descname">supervised_training_step_amp</code><span class="sig-paren">(</span><em class="sig-param">model: torch.nn.modules.module.Module, optimizer: torch.optim.optimizer.Optimizer, loss_fn: Union[Callable, torch.nn.modules.module.Module], device: Optional[Union[str, torch.device]] = None, non_blocking: bool = False, prepare_batch: Callable = &lt;function _prepare_batch&gt;, output_transform: Callable = &lt;function &lt;lambda&gt;&gt;, scaler: Optional[torch.cuda.amp.GradScaler] = None</em><span class="sig-paren">)</span> &#x2192; Callable<a class="reference internal" href="_modules/ignite/engine.html#supervised_training_step_amp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.engine.supervised_training_step_amp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory function for supervised training using <code class="docutils literal notranslate"><span class="pre">torch.cuda.amp</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.nn.Module</em></a>) – the model to train.</p></li>
+<li><p><strong>optimizer</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/optim.html#torch.optim.Optimizer" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.optim.Optimizer</em></a>) – the optimizer to use.</p></li>
+<li><p><strong>loss_fn</strong> (<em>torch.nn loss function</em>) – the loss function to use.</p></li>
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – device type specification (default: None).
+Applies to batches after starting the engine. Model <em>will not</em> be moved.
+Device can be CPU, GPU.</p></li>
+<li><p><strong>non_blocking</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – if True and this copy is between CPU and GPU, the copy may occur asynchronously
+with respect to the host. For other cases, this argument has no effect.</p></li>
+<li><p><strong>prepare_batch</strong> (<em>callable</em><em>, </em><em>optional</em>) – function that receives <cite>batch</cite>, <cite>device</cite>, <cite>non_blocking</cite> and outputs
+tuple of tensors <cite>(batch_x, batch_y)</cite>.</p></li>
+<li><p><strong>output_transform</strong> (<em>callable</em><em>, </em><em>optional</em>) – function that receives ‘x’, ‘y’, ‘y_pred’, ‘loss’ and returns value
+to be assigned to engine’s state.output after each iteration. Default is returning <cite>loss.item()</cite>.</p></li>
+<li><p><strong>scaler</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/amp.html#torch.cuda.amp.GradScaler" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.cuda.amp.GradScaler</em></a><em>, </em><em>optional</em>) – GradScaler instance for gradient scaling. (default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>update function</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 0.5.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="ignite.engine.supervised_training_step_apex">
+<code class="sig-prename descclassname">ignite.engine.</code><code class="sig-name descname">supervised_training_step_apex</code><span class="sig-paren">(</span><em class="sig-param">model: torch.nn.modules.module.Module, optimizer: torch.optim.optimizer.Optimizer, loss_fn: Union[Callable, torch.nn.modules.module.Module], device: Optional[Union[str, torch.device]] = None, non_blocking: bool = False, prepare_batch: Callable = &lt;function _prepare_batch&gt;, output_transform: Callable = &lt;function &lt;lambda&gt;&gt;</em><span class="sig-paren">)</span> &#x2192; Callable<a class="reference internal" href="_modules/ignite/engine.html#supervised_training_step_apex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.engine.supervised_training_step_apex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory function for supervised training using apex.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.nn.Module</em></a>) – the model to train.</p></li>
+<li><p><strong>optimizer</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/optim.html#torch.optim.Optimizer" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.optim.Optimizer</em></a>) – the optimizer to use.</p></li>
+<li><p><strong>loss_fn</strong> (<em>torch.nn loss function</em>) – the loss function to use.</p></li>
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – device type specification (default: None).
+Applies to batches after starting the engine. Model <em>will not</em> be moved.
+Device can be CPU, GPU.</p></li>
+<li><p><strong>non_blocking</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – if True and this copy is between CPU and GPU, the copy may occur asynchronously
+with respect to the host. For other cases, this argument has no effect.</p></li>
+<li><p><strong>prepare_batch</strong> (<em>callable</em><em>, </em><em>optional</em>) – function that receives <cite>batch</cite>, <cite>device</cite>, <cite>non_blocking</cite> and outputs
+tuple of tensors <cite>(batch_x, batch_y)</cite>.</p></li>
+<li><p><strong>output_transform</strong> (<em>callable</em><em>, </em><em>optional</em>) – function that receives ‘x’, ‘y’, ‘y_pred’, ‘loss’ and returns value
+to be assigned to engine’s state.output after each iteration. Default is returning <cite>loss.item()</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>update function.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 0.5.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="ignite.engine.supervised_training_step_tpu">
+<code class="sig-prename descclassname">ignite.engine.</code><code class="sig-name descname">supervised_training_step_tpu</code><span class="sig-paren">(</span><em class="sig-param">model: torch.nn.modules.module.Module, optimizer: torch.optim.optimizer.Optimizer, loss_fn: Union[Callable, torch.nn.modules.module.Module], device: Optional[Union[str, torch.device]] = None, non_blocking: bool = False, prepare_batch: Callable = &lt;function _prepare_batch&gt;, output_transform: Callable = &lt;function &lt;lambda&gt;&gt;</em><span class="sig-paren">)</span> &#x2192; Callable<a class="reference internal" href="_modules/ignite/engine.html#supervised_training_step_tpu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ignite.engine.supervised_training_step_tpu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory function for supervised training using <code class="docutils literal notranslate"><span class="pre">torch_xla</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.nn.Module</em></a>) – the model to train.</p></li>
+<li><p><strong>optimizer</strong> (<a class="reference external" href="https://pytorch.org/docs/stable/optim.html#torch.optim.Optimizer" title="(in PyTorch vmaster (1.7.0a0+57bffc3 ))"><em>torch.optim.Optimizer</em></a>) – the optimizer to use.</p></li>
+<li><p><strong>loss_fn</strong> (<em>torch.nn loss function</em>) – the loss function to use.</p></li>
+<li><p><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – device type specification (default: None).
+Applies to batches after starting the engine. Model <em>will not</em> be moved.
+Device can be CPU, TPU.</p></li>
+<li><p><strong>non_blocking</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – if True and this copy is between CPU and GPU, the copy may occur asynchronously
+with respect to the host. For other cases, this argument has no effect.</p></li>
+<li><p><strong>prepare_batch</strong> (<em>callable</em><em>, </em><em>optional</em>) – function that receives <cite>batch</cite>, <cite>device</cite>, <cite>non_blocking</cite> and outputs
+tuple of tensors <cite>(batch_x, batch_y)</cite>.</p></li>
+<li><p><strong>output_transform</strong> (<em>callable</em><em>, </em><em>optional</em>) – function that receives ‘x’, ‘y’, ‘y_pred’, ‘loss’ and returns value
+to be assigned to engine’s state.output after each iteration. Default is returning <cite>loss.item()</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>update function.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 0.5.0.</span></p>
+</div>
 </dd></dl>
 
 <div class="section" id="resuming-the-training">
