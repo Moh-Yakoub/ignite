@@ -337,11 +337,6 @@
 <span class="sd">        as tensors before computing a metric. This can potentially lead to a memory error if the input data is larger</span>
 <span class="sd">        than available RAM.</span>
 
-<span class="sd">    .. warning::</span>
-
-<span class="sd">        In multilabel cases, if average is False, current implementation does not work with distributed computations.</span>
-<span class="sd">        Results are not reduced across the GPUs. Computed result corresponds to the local rank&#39;s (single GPU) result.</span>
-
 
 <span class="sd">    Args:</span>
 <span class="sd">        output_transform (callable, optional): a callable that is used to transform the</span>

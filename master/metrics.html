@@ -1523,11 +1523,6 @@ example, average parameter should be False. This can be done as shown below:</p>
 as tensors before computing a metric. This can potentially lead to a memory error if the input data is larger
 than available RAM.</p>
 </div>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>In multilabel cases, if average is False, current implementation does not work with distributed computations.
-Results are not reduced across the GPUs. Computed result corresponds to the local rank’s (single GPU) result.</p>
-</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -1588,11 +1583,6 @@ example, average parameter should be False. This can be done as shown below:</p>
 <p>In multilabel cases, if average is False, current implementation stores all input data (output and target) in
 as tensors before computing a metric. This can potentially lead to a memory error if the input data is larger
 than available RAM.</p>
-</div>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>In multilabel cases, if average is False, current implementation does not work with distributed computations.
-Results are not reduced across the GPUs. Computed result corresponds to the local rank’s (single GPU) result.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
